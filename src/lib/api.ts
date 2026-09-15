@@ -16,9 +16,9 @@ import {
   getStore,
   recalculateBalance,
   saveSession,
-  updateAccount,
   updateTransaction,
 } from './storage'
+
 
 export async function login(email: string, password: string, role: 'customer' | 'admin'): Promise<AuthSession | null> {
   const store = getStore()
@@ -148,15 +148,16 @@ export function applyTransaction(
 
   addTransaction(transaction)
 
-  const updatedAccount: Account = {
+  const updatedAccount = recalculateBalance(accountId) ?? {
     ...account,
     balance: balanceAfter,
     available_balance: balanceAfter,
   }
-  updateAccount(updatedAccount)
+  const refreshedTxn = getTransactionById(transaction.id) ?? transaction
 
-  return { transaction, account: updatedAccount }
+  return { transaction: refreshedTxn, account: updatedAccount }
 }
+
 
 export function editTransaction(
   txnId: string,
@@ -167,27 +168,34 @@ export function editTransaction(
   const existing = getTransactionById(txnId)
   if (!existing) return null
 
-  deleteTransaction(txnId)
-  recalculateBalance(existing.account_id)
-
-  const account = getAccountById(existing.account_id)!
   const type = newType ?? existing.type
-  const amount = newAmount ?? data.amount
+  const amount = typeof newAmount === 'number' ? newAmount : data.amount
 
-  const result = applyTransaction(existing.account_id, type, { ...data, amount })
-  if (!result) {
-    addTransaction(existing)
-    recalculateBalance(existing.account_id)
-    return null
+  const updated: Transaction = {
+    ...existing,
+    type,
+    amount,
+    title: data.title,
+    description: data.description,
+    merchant: data.merchant,
+    sender: data.sender,
+    recipient: data.recipient,
+    category: data.category,
+    reference: data.reference,
+    transaction_id: data.transaction_id,
+    date: data.date,
+    time: data.time,
+    status: data.status,
+    notes: data.notes,
+    updated_at: new Date().toISOString(),
   }
 
-  const updated = { ...result.transaction, id: existing.id, created_at: existing.created_at }
-  deleteTransaction(result.transaction.id)
-  addTransaction(updated)
+  updateTransaction(updated)
   recalculateBalance(existing.account_id)
 
   return getTransactionById(existing.id) ?? updated
 }
+
 
 export function removeTransaction(txnId: string): boolean {
   const txn = getTransactionById(txnId)

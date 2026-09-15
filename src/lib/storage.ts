@@ -1,5 +1,6 @@
 import type { Account, Transaction, User } from '../types'
 import { SEED_ACCOUNT, SEED_TRANSACTIONS, SEED_USERS } from './seed'
+import { parseTxnTimestamp } from './format'
 
 const STORAGE_KEY = 'velora_bank_data'
 const SESSION_KEY = 'velora_bank_session'
@@ -49,8 +50,8 @@ function recalculateBalanceInternal(store: StoreData, accountId: string): void {
   const txns = store.transactions
     .filter((t) => t.account_id === accountId && t.status === 'completed')
     .sort((a, b) => {
-      const da = new Date(`${a.date} ${a.time}`).getTime()
-      const db = new Date(`${b.date} ${b.time}`).getTime()
+      const da = parseTxnTimestamp(a.date, a.time, a.created_at)
+      const db = parseTxnTimestamp(b.date, b.time, b.created_at)
       return da - db
     })
 
@@ -70,6 +71,15 @@ function saveStore(data: StoreData): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   window.dispatchEvent(new CustomEvent('velora:data-changed'))
 }
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key === STORAGE_KEY) {
+      window.dispatchEvent(new CustomEvent('velora:data-changed'))
+    }
+  })
+}
+
 
 export function getStore(): StoreData {
   return loadStore()

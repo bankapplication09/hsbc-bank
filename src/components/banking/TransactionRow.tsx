@@ -1,6 +1,5 @@
 import {
   ArrowDownLeft,
-  ArrowUpRight,
   ShoppingBag,
   Utensils,
   Zap,
@@ -14,6 +13,8 @@ import {
 } from 'lucide-react'
 import type { Transaction } from '../../types'
 import { formatCurrency, formatDateTime } from '../../lib/format'
+
+
 
 const categoryIcons: Record<string, typeof ShoppingBag> = {
   Shopping: ShoppingBag,
