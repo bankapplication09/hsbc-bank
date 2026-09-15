@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #fdf2f5;
+  --color-brand-100: #fce7ed;
+  --color-brand-200: #f9c5d4;
+  --color-brand-300: #f293b0;
+  --color-brand-400: #e85d88;
+  --color-brand-500: #d6336c;
+  --color-brand-600: #b81d52;
+  --color-brand-700: #9a1644;
+  --color-brand-800: #7c1034;
+  --color-brand-900: #5c0b26;
+  --color-surface: #f5f5f7;
+  --color-charcoal: #1a1a1f;
+  --color-muted: #6b7280;
+  --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  font-family: var(--font-sans);
+  background: #e8e8ed;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  overscroll-behavior: none;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+.mobile-shell {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: var(--color-surface);
+  position: relative;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.08);
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.balance-reveal {
+  animation: balanceReveal 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes balanceReveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.sheet-enter {
+  animation: slideUp 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.overlay-enter {
+  animation: fadeIn 0.25s ease;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #ececef 25%, #f5f5f7 50%, #ececef 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.card-gradient {
+  background: linear-gradient(135deg, #7c1034 0%, #9a1644 45%, #b81d52 100%);
+}
+
+.touch-active:active {
+  transform: scale(0.97);
+  transition: transform 0.12s ease;
+}
