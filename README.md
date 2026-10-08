@@ -1,62 +1,52 @@
-# Velora Bank — Mobile Banking App
+# HSBC Demo
 
-A premium **mobile-only** banking web application inspired by modern fintech UI patterns. Built with React, TypeScript, and Tailwind CSS.
+A practice mobile banking app. It is **not** HSBC, it is not connected to HSBC, and it does not move real money.
 
-## Features
+Customers can log on, see balances, browse transactions, make demo payments between practice accounts, and download a CSV statement. Staff can manage customers, add or deduct demo funds, post and reverse transactions, and read an audit log.
 
-- **Customer portal**: Login, balance card with show/hide, accounts, transactions, full transaction details
-- **Admin portal**: Dashboard, customer management, credit/debit transactions, edit/delete with balance recalculation
-- **Real-time sync**: Customer sees admin changes immediately (same browser storage / Supabase realtime)
-- **Mobile-first**: Optimized for 360–430px viewports, bottom navigation, bottom sheets, safe areas
+## Demo log on
 
-## Demo Credentials
+| | Email | Password |
+|---|---|---|
+| Customer | user@hsbc.demo | User@12345 |
+| Staff | admin@hsbc.demo | Admin@12345 |
 
-| Role     | Email             | Password      |
-|----------|-------------------|---------------|
-| Customer | user@example.com  | User@12345    |
-| Admin    | admin@example.com | Admin@12345   |
+John Reed’s current account starts at **£5,000.00**. Other customers use the same password.
 
-Initial customer balance: **₹125,450.00** with 10 sample transactions.
+## Local setup
 
-## Quick Start
+PostgreSQL 14+ is required. Docker is not used.
 
 ```bash
 npm install
+copy .env.example .env
+```
+
+Edit `.env` and set `DATABASE_URL` and `DIRECT_URL` to your Postgres instance. Create the database, then:
+
+```bash
+npx prisma migrate deploy
+npm run db:seed
 npm run dev
 ```
 
-Open `http://localhost:5173` and use Chrome DevTools mobile view (375px recommended).
+Open http://localhost:3000. The layout is built for a phone first (375–430px). On a wider screen the same screens sit beside a side menu.
 
-## Supabase (Optional)
+## Vercel
 
-The app runs locally with browser storage by default. To use Supabase:
+Set these environment variables on the project:
 
-1. Create a Supabase project
-2. Run `supabase/schema.sql` in the SQL editor
-3. Copy `.env.example` to `.env` and add your credentials
+- `DATABASE_URL` — pooled Postgres URL (Neon or Vercel Postgres)
+- `DIRECT_URL` — direct Postgres URL, used by Prisma migrations
+- `APP_URL` — the public site URL
+- `DEMO_EXPOSE_RESET_LINK` — keep this `false` on a public site
 
-## Tech Stack
+The build command is `npm run vercel-build`, which generates the client, applies migrations, and builds Next.js.
 
-- React 19 + TypeScript
-- Vite
-- Tailwind CSS 4
-- React Router 7
-- Supabase (optional backend)
+## Checks
 
-## Project Structure
-
+```bash
+npm run typecheck
+npm run lint
+npm test
 ```
-src/
-  components/   # UI, layout, banking components
-  contexts/     # Auth, toast
-  lib/          # API, storage, formatting
-  pages/        # Customer & admin screens
-```
-
-## Mobile Testing Flow
-
-**Customer**: Login → Home → View Balance → Accounts → Transactions → Transaction Details → Profile → Logout
-
-**Admin**: Login → Dashboard → Customers → Customer Account → Credit/Debit → Transactions → Edit/Delete
-
-After admin adds ₹10,000 credit and ₹5,000 debit, customer balance should show **₹130,450**.
