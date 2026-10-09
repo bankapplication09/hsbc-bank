@@ -5,6 +5,7 @@ import { requireAdminPage } from "@/server/auth";
 import { loadStats } from "@/server/stats";
 import { OverviewCharts } from "@/components/charts";
 import { CurrencyAmount } from "@/components/bank";
+import { Card, SectionHeader } from "@/components/ui";
 
 export default async function DashboardPage() {
   await requireAdminPage();
@@ -20,45 +21,60 @@ export default async function DashboardPage() {
     ["Today", String(stats.transactionsToday)],
   ];
   return (
-    <div className="space-y-6">
+    <div className="rise space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
-        <p className="text-sm text-neutral-500">HSBC UK balances and customer activity.</p>
+        <p className="text-sm font-medium uppercase tracking-wide text-brand">Staff console</p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-charcoal md:text-3xl">Overview</h1>
+        <p className="mt-2 text-sm text-muted">Balances and customer activity across the demonstration bank.</p>
       </div>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {tiles.map(([label, value]) => (
-          <section key={label} className="rounded-2xl bg-white p-4 ring-1 ring-line">
-            <p className="text-xs uppercase tracking-wide text-neutral-500">{label}</p>
-            <p className="mt-2 text-xl font-semibold tracking-tight">{value}</p>
-          </section>
+          <Card key={label} padding="sm" className="transition-colors hover:border-line-strong">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">{label}</p>
+            <p className="mt-2 text-xl font-semibold tabular-nums tracking-tight text-charcoal">{value}</p>
+          </Card>
         ))}
       </div>
       <OverviewCharts data={stats.chart} />
       <div className="grid gap-4 lg:grid-cols-2">
-        <section className="rounded-2xl bg-white ring-1 ring-line">
-          <h2 className="border-b border-line px-4 py-3 text-sm font-semibold">Recent transactions</h2>
-          {stats.recentTransactions.map((txn) => (
-            <Link key={txn.id} href="/admin/transactions" className="flex items-center justify-between border-b border-line px-4 py-3 last:border-b-0">
-              <span>
-                <span className="block text-sm font-medium">{txn.description}</span>
-                <span className="text-xs text-neutral-500">{txn.ownerName}</span>
-              </span>
-              <CurrencyAmount amount={txn.amount} type={txn.type} />
-            </Link>
-          ))}
-        </section>
-        <section className="rounded-2xl bg-white ring-1 ring-line">
-          <h2 className="border-b border-line px-4 py-3 text-sm font-semibold">Recent staff actions</h2>
-          {stats.recentActions.length === 0 ? <p className="px-4 py-6 text-sm text-neutral-500">No staff actions yet.</p> : null}
-          {stats.recentActions.map((action) => (
-            <div key={action.id} className="border-b border-line px-4 py-3 last:border-b-0">
-              <p className="text-sm">{action.summary}</p>
-              <p className="text-xs text-neutral-500">
-                {action.adminName} · {formatDateTime(action.createdAt)}
-              </p>
-            </div>
-          ))}
-        </section>
+        <Card padding="none">
+          <div className="px-4 pt-4">
+            <SectionHeader title="Recent transactions" />
+          </div>
+          <div className="border-t border-line">
+            {stats.recentTransactions.map((txn) => (
+              <Link
+                key={txn.id}
+                href="/admin/transactions"
+                className="flex items-center justify-between border-b border-line px-4 py-3.5 last:border-b-0 hover:bg-mist/80"
+              >
+                <span>
+                  <span className="block text-sm font-medium text-charcoal">{txn.description}</span>
+                  <span className="text-xs text-muted">{txn.ownerName}</span>
+                </span>
+                <CurrencyAmount amount={txn.amount} type={txn.type} />
+              </Link>
+            ))}
+          </div>
+        </Card>
+        <Card padding="none">
+          <div className="px-4 pt-4">
+            <SectionHeader title="Recent staff actions" />
+          </div>
+          <div className="border-t border-line">
+            {stats.recentActions.length === 0 ? (
+              <p className="px-4 py-8 text-sm text-muted">No staff actions yet.</p>
+            ) : null}
+            {stats.recentActions.map((action) => (
+              <div key={action.id} className="border-b border-line px-4 py-3.5 last:border-b-0">
+                <p className="text-sm text-charcoal">{action.summary}</p>
+                <p className="mt-1 text-xs text-muted">
+                  {action.adminName} · {formatDateTime(action.createdAt)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </Card>
       </div>
     </div>
   );

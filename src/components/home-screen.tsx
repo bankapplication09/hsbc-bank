@@ -3,13 +3,12 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { firstName, formatDate, greeting } from "@/lib/format";
+import { firstName, formatDate, formatTodayLong, greeting } from "@/lib/format";
 import { formatGBP } from "@/lib/money";
 import { ApiError, api } from "@/lib/client";
-import { BalanceCard, TransactionItem } from "./bank";
+import { BalanceCard, QuickActions, TransactionItem } from "./bank";
 import { HomeServices } from "./home-services";
-import { Button, Dialog, EmptyState, ErrorState, TextField } from "./ui";
-import { Wordmark } from "./shells";
+import { Button, Dialog, EmptyState, ErrorState, SectionHeader, SecureSessionBadge, TextField } from "./ui";
 
 type Account = {
   id: string;
@@ -98,13 +97,19 @@ export function HomeScreen({
   }
 
   return (
-    <div className="rise px-5 pt-5">
-      <div className="flex items-center justify-between pr-12">
-        <Wordmark />
+    <div className="rise px-4 pt-5 md:px-0 md:pt-6">
+      <div className="flex flex-wrap items-start justify-between gap-3 pr-12 md:pr-0">
+        <div>
+          <p className="text-sm text-muted">{greeting()}</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-charcoal md:text-3xl">{firstName(fullName)}</h1>
+          <p className="mt-1 text-sm text-muted">{formatTodayLong()}</p>
+        </div>
+        <div className="md:hidden">
+          <SecureSessionBadge />
+        </div>
       </div>
-      <p className="mt-6 text-sm text-neutral-500">{greeting()}</p>
-      <h1 className="text-2xl font-semibold tracking-tight">{firstName(fullName)}</h1>
-      <div className="mt-5">
+
+      <section className="mt-6">
         {primary ? (
           <BalanceCard
             name={primary.name}
@@ -119,44 +124,59 @@ export function HomeScreen({
         ) : (
           <EmptyState title="No account yet" body="An account will appear here once it is opened." />
         )}
-      </div>
+      </section>
+
       {accounts.length > 1 ? (
         <div className="mt-3 grid gap-2">
           {accounts
             .filter((account) => account.id !== primary?.id)
             .map((account) => (
-              <Link key={account.id} href={`/accounts/${account.id}`} className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 ring-1 ring-line">
+              <Link
+                key={account.id}
+                href={`/accounts/${account.id}`}
+                className="panel flex items-center justify-between px-4 py-3 transition-colors hover:bg-brand-soft/40"
+              >
                 <span>
-                  <span className="block text-sm font-medium">{account.name}</span>
-                  <span className="text-xs text-neutral-500">{account.accountNumberMasked}</span>
+                  <span className="block text-sm font-medium text-charcoal">{account.name}</span>
+                  <span className="text-xs text-muted">{account.accountNumberMasked}</span>
                 </span>
-                <span className="text-sm font-semibold">{hidden ? "£ ••••••" : formatGBP(account.availableBalance)}</span>
+                <span className="text-sm font-semibold tabular-nums">{hidden ? "£ ••••••" : formatGBP(account.availableBalance)}</span>
               </Link>
             ))}
         </div>
       ) : null}
+
+      <section className="mt-8">
+        <SectionHeader title="Quick actions" description="Everyday banking tasks" />
+        <QuickActions />
+      </section>
+
       <HomeServices />
-      <div className="mt-6 grid grid-cols-2 gap-2">
-        <Link href="/insights" className="rounded-2xl bg-white p-4 ring-1 ring-line">
-          <p className="text-xs text-neutral-500">Spent this month</p>
-          <p className="mt-1 text-lg font-semibold">{hidden ? "£ ••••••" : formatGBP(monthSpent)}</p>
+
+      <div className="mt-8 grid grid-cols-2 gap-3">
+        <Link href="/insights" className="panel p-4 transition-colors hover:bg-brand-soft/30">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted">Spent this month</p>
+          <p className="mt-2 text-xl font-semibold tabular-nums text-charcoal">{hidden ? "£ ••••••" : formatGBP(monthSpent)}</p>
         </Link>
-        <Link href="/direct-debits" className="rounded-2xl bg-white p-4 ring-1 ring-line">
-          <p className="text-xs text-neutral-500">Next direct debit</p>
-          <p className="mt-1 truncate text-sm font-semibold">{nextDebit ? nextDebit.name : "None set"}</p>
-          <p className="text-xs text-neutral-500">
+        <Link href="/direct-debits" className="panel p-4 transition-colors hover:bg-brand-soft/30">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted">Next direct debit</p>
+          <p className="mt-2 truncate text-sm font-semibold text-charcoal">{nextDebit ? nextDebit.name : "None set"}</p>
+          <p className="mt-1 text-xs text-muted">
             {nextDebit ? `${hidden ? "£ ••••••" : formatGBP(nextDebit.amount)} · ${formatDate(nextDebit.nextDate)}` : "Add a bill"}
           </p>
         </Link>
       </div>
-      <section className="mt-8">
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-base font-semibold">Recent transactions</h2>
-          <Link href="/transactions" className="text-sm font-semibold text-brand">
-            See all
-          </Link>
-        </div>
-        <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-line">
+
+      <section className="mt-10">
+        <SectionHeader
+          title="Recent transactions"
+          action={
+            <Link href="/transactions" className="text-sm font-semibold text-brand hover:underline">
+              See all
+            </Link>
+          }
+        />
+        <div className="panel overflow-hidden p-0">
           {transactions.length === 0 ? (
             <EmptyState title="No transactions yet" body="Payments and credits will show up here." />
           ) : (
@@ -176,9 +196,10 @@ export function HomeScreen({
           )}
         </div>
       </section>
+
       <Dialog open={askPin} title="4-digit password" onClose={() => setAskPin(false)}>
         <form onSubmit={reveal} className="space-y-3">
-          <p className="text-sm text-neutral-500">Enter your 4-digit password to show the balance.</p>
+          <p className="text-sm text-muted">Enter your 4-digit password to show the balance.</p>
           {pinError ? <ErrorState message={pinError} /> : null}
           <TextField
             label="Password"

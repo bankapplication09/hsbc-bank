@@ -15,7 +15,6 @@ const USER_PREFIXES = [
   "/direct-debits",
   "/goals",
   "/rates",
-  "/help",
   "/explore",
 ];
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FileText } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { formatDate } from "@/lib/format";
 import { formatGBP } from "@/lib/money";
@@ -7,7 +8,9 @@ import { requireUserPage } from "@/server/auth";
 import { loadStatement } from "@/server/statements";
 import { serializeTxn } from "@/server/serialize";
 import { TransactionItem } from "@/components/bank";
-import { EmptyState, PageHeader } from "@/components/ui";
+import { MetricCard, MetricGrid } from "@/components/banking/metrics";
+import { BankingPageIntro } from "@/components/page-intro";
+import { EmptyState, PageHeader, SectionHeader } from "@/components/ui";
 
 export default async function StatementsPage({
   searchParams,
@@ -30,15 +33,22 @@ export default async function StatementsPage({
   if (parsed.success) {
     statement = await loadStatement(session.user.id, parsed.data.accountId, parsed.data.from, parsed.data.to);
   }
+  const hidden = session.user.hideBalances;
 
   return (
-    <div>
+    <div className="md:pt-2">
       <PageHeader title="Statements" back="/home" />
-      <div className="space-y-4 px-5">
-        <form className="grid grid-cols-2 gap-2 rounded-2xl bg-white p-4 ring-1 ring-line" action="/statements">
+      <div className="space-y-4 px-4 pb-10 md:px-0">
+        <BankingPageIntro
+          title="Account statements"
+          description="Choose an account and period, review balances and entries, then export a CSV for your records."
+          icon={FileText}
+          imageSrc="/ui/hero-services.svg"
+        />
+        <form className="panel grid grid-cols-2 gap-3 p-4" action="/statements">
           <label className="col-span-2 text-sm">
             Account
-            <select name="accountId" defaultValue={parsed.success ? parsed.data.accountId : ""} className="mt-1 h-11 w-full rounded-lg border border-line px-2">
+            <select name="accountId" defaultValue={parsed.success ? parsed.data.accountId : ""} className="mt-1 h-11 w-full rounded-md border border-line px-2">
               {accounts.map((account) => (
                 <option key={account.id} value={account.id}>
                   {account.name}
@@ -48,37 +58,37 @@ export default async function StatementsPage({
           </label>
           <label className="text-sm">
             From
-            <input type="date" name="from" defaultValue={parsed.success ? parsed.data.from.slice(0, 10) : defaultFrom} className="mt-1 h-11 w-full rounded-lg border border-line px-2" />
+            <input type="date" name="from" defaultValue={parsed.success ? parsed.data.from.slice(0, 10) : defaultFrom} className="mt-1 h-11 w-full rounded-md border border-line px-2" />
           </label>
           <label className="text-sm">
             To
-            <input type="date" name="to" defaultValue={parsed.success ? parsed.data.to.slice(0, 10) : defaultTo} className="mt-1 h-11 w-full rounded-lg border border-line px-2" />
+            <input type="date" name="to" defaultValue={parsed.success ? parsed.data.to.slice(0, 10) : defaultTo} className="mt-1 h-11 w-full rounded-md border border-line px-2" />
           </label>
-          <button className="col-span-2 h-11 rounded-lg bg-brand text-sm font-semibold text-white" type="submit">
+          <button className="col-span-2 h-11 rounded-md bg-brand text-sm font-semibold text-white" type="submit">
             View statement
           </button>
         </form>
         {statement ? (
           <>
-            <section className="rounded-2xl bg-white p-4 ring-1 ring-line">
-              <p className="text-sm text-neutral-500">{statement.account.name}</p>
-              <p className="text-xs text-neutral-400">
-                {formatDate(statement.start)} – {formatDate(statement.end)}
+            <MetricGrid>
+              <MetricCard label="Opening" value={hidden ? "£ ••••" : formatGBP(statement.opening)} />
+              <MetricCard label="Closing" value={hidden ? "£ ••••" : formatGBP(statement.closing)} tone="brand" />
+              <MetricCard label="Paid in" value={hidden ? "£ ••••" : formatGBP(statement.credits)} hint="Credits" />
+              <MetricCard label="Paid out" value={hidden ? "£ ••••" : formatGBP(statement.debits)} hint="Debits" />
+            </MetricGrid>
+            <section className="panel p-4">
+              <SectionHeader title="Statement summary" description={`${statement.account.name} · ${formatDate(statement.start)} – ${formatDate(statement.end)}`} />
+              <p className="text-sm text-muted">
+                {statement.items.length} entries in this period. CSV export includes the same rows for spreadsheet reconciliation (demo).
               </p>
-              <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                <p>Opening<br /><span className="font-semibold">{formatGBP(statement.opening)}</span></p>
-                <p>Closing<br /><span className="font-semibold">{formatGBP(statement.closing)}</span></p>
-                <p>Paid in<br /><span className="font-semibold text-emerald-700">{formatGBP(statement.credits)}</span></p>
-                <p>Paid out<br /><span className="font-semibold">{formatGBP(statement.debits)}</span></p>
-              </div>
               <Link
                 href={`/api/statements/download?accountId=${statement.account.id}&from=${parsed.success ? parsed.data.from : defaultFrom}&to=${parsed.success ? parsed.data.to : defaultTo}`}
-                className="mt-4 block text-center text-sm font-semibold text-brand"
+                className="mt-4 inline-flex h-11 items-center justify-center rounded-md bg-charcoal px-4 text-sm font-semibold text-white"
               >
                 Download CSV
               </Link>
             </section>
-            <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-line">
+            <div className="panel overflow-hidden p-0">
               {statement.items.length === 0 ? (
                 <EmptyState title="No entries" body="Nothing was posted in this date range." />
               ) : (
@@ -100,7 +110,9 @@ export default async function StatementsPage({
               )}
             </div>
           </>
-        ) : null}
+        ) : (
+          <EmptyState title="Select a period" body="Choose an account and dates, then tap View statement." />
+        )}
       </div>
     </div>
   );

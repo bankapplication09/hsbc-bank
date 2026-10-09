@@ -1,12 +1,14 @@
-import Link from "next/link";
 import { Suspense } from "react";
+import { ScrollText } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { transactionQuerySchema } from "@/lib/validation";
 import { requireUserPage } from "@/server/auth";
 import { queryTransactions } from "@/server/queries";
 import { serializeTxn } from "@/server/serialize";
-import { TransactionFilters, TransactionItem } from "@/components/bank";
-import { EmptyState, PageHeader } from "@/components/ui";
+import { BankingPageIntro } from "@/components/page-intro";
+import { TransactionListGrouped } from "@/components/transaction-list";
+import { TransactionFilters } from "@/components/transaction-filters";
+import { PageHeader } from "@/components/ui";
 
 export default async function TransactionsPage({
   searchParams,
@@ -31,47 +33,46 @@ export default async function TransactionsPage({
     select: { id: true, name: true },
   });
   const page = query.page ?? 1;
+  const pageSize = query.pageSize ?? 20;
+  const totalPages = Math.max(1, Math.ceil(result.total / pageSize));
+
+  const rows = result.items.map((txn) => {
+    const viewTxn = serializeTxn(txn);
+    return {
+      id: viewTxn.id,
+      title: viewTxn.merchant || viewTxn.description,
+      category: viewTxn.category,
+      transactionDate: viewTxn.transactionDate,
+      amount: viewTxn.amount,
+      type: viewTxn.type,
+      status: viewTxn.status,
+    };
+  });
+
+  const prevHref = page > 1 ? `?${new URLSearchParams({ ...flat, page: String(page - 1) })}` : null;
+  const nextHref = page * pageSize < result.total ? `?${new URLSearchParams({ ...flat, page: String(page + 1) })}` : null;
 
   return (
-    <div>
+    <div className="md:pt-2">
       <PageHeader title="Transactions" />
-      <div className="space-y-4 px-5">
+      <div className="space-y-5 px-4 md:px-0">
+        <BankingPageIntro
+          title="Activity history"
+          description="Your payments and credits grouped by day, like mobile banking."
+          icon={ScrollText}
+          imageSrc="/ui/hero-transactions.svg"
+        />
         <Suspense>
           <TransactionFilters accounts={accounts} />
         </Suspense>
-        <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-line">
-          {result.items.length === 0 ? (
-            <EmptyState title="Nothing to show" body="Try a different search or filter." />
-          ) : (
-            result.items.map((txn) => {
-              const viewTxn = serializeTxn(txn);
-              return (
-                <TransactionItem
-                  key={viewTxn.id}
-                  id={viewTxn.id}
-                  title={viewTxn.merchant || viewTxn.description}
-                  category={viewTxn.category}
-                  date={viewTxn.transactionDate}
-                  amount={viewTxn.amount}
-                  type={viewTxn.type}
-                  status={viewTxn.status}
-                  hidden={session.user.hideBalances}
-                />
-              );
-            })
-          )}
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          {page > 1 ? <Link href={`?${new URLSearchParams({ ...flat, page: String(page - 1) })}`}>Previous</Link> : <span />}
-          <span className="text-neutral-500">
-            Page {page} of {Math.max(1, Math.ceil(result.total / (query.pageSize ?? 20)))}
-          </span>
-          {page * (query.pageSize ?? 20) < result.total ? (
-            <Link href={`?${new URLSearchParams({ ...flat, page: String(page + 1) })}`}>Next</Link>
-          ) : (
-            <span />
-          )}
-        </div>
+        <TransactionListGrouped
+          items={rows}
+          hidden={session.user.hideBalances}
+          page={page}
+          totalPages={totalPages}
+          prevHref={prevHref}
+          nextHref={nextHref}
+        />
       </div>
     </div>
   );

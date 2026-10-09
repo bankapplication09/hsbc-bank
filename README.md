@@ -8,8 +8,8 @@ Customers can log on, see balances, browse transactions, make demo payments betw
 
 | | Email | Password |
 |---|---|---|
-| Customer | user@hsbc.demo | User@12345 |
-| Staff | admin@hsbc.demo | Admin@12345 |
+| Customer | user@hsbcuk.co.uk | User@12345 |
+| Staff | admin@hsbcuk.co.uk | Admin@12345 |
 
 John Reed’s current account starts at **£5,000.00**. Other customers use the same password.
 
@@ -42,8 +42,9 @@ Map them for Prisma (Production + Preview + Development):
 
 | You set      | Copy from (Vercel Postgres)   |
 |-------------|--------------------------------|
-| `DATABASE_URL` | `POSTGRES_PRISMA_URL`       |
-| `DIRECT_URL`   | `POSTGRES_URL_NON_POOLING`  |
+| `DATABASE_URL` | `POSTGRES_PRISMA_URL` (or Neon’s `DATABASE_URL`) |
+
+Prisma migrations use `POSTGRES_URL_NON_POOLING` (Neon adds this automatically when the store is connected).
 
 Also set:
 

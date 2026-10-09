@@ -37,8 +37,20 @@ export const formatTime = (d: DateInput) => time.format(toDate(d));
 export const formatDateTime = (d: DateInput) => dateTime.format(toDate(d));
 export const formatMonthYear = (d: DateInput) => monthYear.format(toDate(d));
 
-export function greeting(): string {
-  return "Hello";
+export function greeting(now: Date = new Date()): string {
+  const hour = now.getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+export function formatTodayLong(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(now);
 }
 
 export function firstName(fullName: string): string {

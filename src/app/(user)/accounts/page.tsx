@@ -1,9 +1,12 @@
 import Link from "next/link";
+import { Landmark, CreditCard } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { formatDate } from "@/lib/format";
-import { formatGBP } from "@/lib/money";
+import { formatGBP, fromPence, toPence } from "@/lib/money";
+import { MetricCard, MetricGrid } from "@/components/banking/metrics";
 import { requireUserPage } from "@/server/auth";
 import { serializeAccount } from "@/server/serialize";
+import { BankingPageIntro } from "@/components/page-intro";
 import { EmptyState, PageHeader, StatusBadge } from "@/components/ui";
 
 export default async function AccountsPage() {
@@ -14,33 +17,61 @@ export default async function AccountsPage() {
     include: { transactions: { orderBy: { transactionDate: "desc" }, take: 1 } },
   });
   const hidden = session.user.hideBalances;
+  let totalAvailable = 0n;
+  for (const account of accounts) {
+    totalAvailable += toPence(account.availableBalance.toString());
+  }
   return (
-    <div>
+    <div className="md:pt-2">
       <PageHeader title="Accounts" />
-      <div className="space-y-3 px-5">
+      <div className="space-y-4 px-4 md:px-0">
+        <BankingPageIntro
+          title="Your accounts"
+          description="View balances, account numbers, and recent activity across your HSBC UK accounts."
+          icon={Landmark}
+          imageSrc="/ui/hero-accounts.svg"
+        />
+        <MetricGrid>
+          <MetricCard label="Accounts" value={String(accounts.length)} />
+          <MetricCard label="Total available" value={hidden ? "£ ••••••" : formatGBP(fromPence(totalAvailable))} tone="brand" />
+          <MetricCard label="Products" value="Savings" hint="Demo accounts" />
+        </MetricGrid>
         {accounts.length === 0 ? <EmptyState title="No accounts" body="Your accounts will be listed here." /> : null}
         {accounts.map((account) => {
           const view = serializeAccount(account);
           const latest = account.transactions[0];
           return (
-            <Link key={account.id} href={`/accounts/${account.id}`} className="block rounded-2xl bg-white p-5 ring-1 ring-line">
-              <div className="flex items-start justify-between">
+            <Link
+              key={account.id}
+              href={`/accounts/${account.id}`}
+              className="panel relative block overflow-hidden p-5 transition-colors hover:border-line-strong hover:bg-brand-soft/20"
+            >
+              <div className="absolute inset-y-0 left-0 w-1 bg-brand" aria-hidden />
+              <div className="flex items-start justify-between pl-2">
                 <div>
-                  <p className="text-xs font-semibold tracking-[0.14em] text-neutral-500">{view.name.toUpperCase()}</p>
-                  <p className="mt-2 text-2xl font-semibold tracking-tight">{hidden ? "£ ••••••" : formatGBP(view.availableBalance)}</p>
-                  <p className="text-xs text-neutral-500">Available balance</p>
+                  <p className="text-[11px] font-semibold tracking-[0.14em] text-muted">{view.name.toUpperCase()}</p>
+                  <p className="mt-2 text-2xl font-semibold tabular-nums tracking-tight text-charcoal">
+                    {hidden ? "£ ••••••" : formatGBP(view.availableBalance)}
+                  </p>
+                  <p className="text-xs text-muted">Available balance</p>
                 </div>
                 <StatusBadge status={view.status} />
               </div>
-              <p className="mt-4 font-mono text-sm text-neutral-600">{view.accountNumberMasked}</p>
-              <p className="mt-2 text-xs text-neutral-500">
+              <p className="mt-4 pl-2 font-mono text-sm text-charcoal">{view.accountNumberMasked}</p>
+              <p className="mt-2 pl-2 text-xs text-muted">
                 {latest ? `Latest · ${latest.description} · ${formatDate(latest.transactionDate)}` : "No recent activity"}
               </p>
             </Link>
           );
         })}
-        <Link href="/cards" className="block rounded-2xl bg-white px-5 py-4 text-sm font-semibold ring-1 ring-line">
-          Cards
+        <Link
+          href="/cards"
+          className="panel flex items-center gap-3 px-5 py-4 text-sm font-semibold text-brand transition-colors hover:bg-brand-soft/30"
+        >
+          <span className="grid h-10 w-10 place-items-center rounded-md bg-brand-soft text-brand">
+            <CreditCard size={20} />
+          </span>
+          Manage cards
         </Link>
       </div>
     </div>

@@ -55,13 +55,6 @@ export function ProfileScreen({ user, accounts }: { user: ProfileUser; accounts:
   const [city, setCity] = useState(user.city);
   const [postcode, setPostcode] = useState(user.postcode);
   const [occupation, setOccupation] = useState(user.occupation);
-  const [settings, setSettings] = useState({
-    hideBalances: user.hideBalances,
-    notifyTransactions: user.notifyTransactions,
-    notifyStatements: user.notifyStatements,
-  });
-  const [pin, setPin] = useState("");
-
   async function saveDetails(event: React.FormEvent) {
     event.preventDefault();
     setError("");
@@ -74,24 +67,6 @@ export function ProfileScreen({ user, accounts }: { user: ProfileUser; accounts:
       router.refresh();
     } catch (cause) {
       setError(cause instanceof ApiError ? cause.message : "Could not save");
-    }
-  }
-
-  async function saveSettings(event: React.FormEvent) {
-    event.preventDefault();
-    setError("");
-    try {
-      await api("/api/settings", {
-        method: "PATCH",
-        body: JSON.stringify({
-          ...settings,
-          ...(user.hideBalances && !settings.hideBalances ? { pin } : {}),
-        }),
-      });
-      toast("Settings saved");
-      router.refresh();
-    } catch (cause) {
-      setError(cause instanceof ApiError ? cause.message : "Could not save settings");
     }
   }
 
@@ -172,41 +147,6 @@ export function ProfileScreen({ user, accounts }: { user: ProfileUser; accounts:
           </ul>
         </section>
 
-        <form onSubmit={saveSettings} className="space-y-3 rounded-2xl bg-white p-4 ring-1 ring-line">
-          <h3 className="font-semibold">Settings</h3>
-          {(
-            [
-              ["hideBalances", "Hide balances"],
-              ["notifyTransactions", "Transaction alerts"],
-              ["notifyStatements", "Statement alerts"],
-            ] as const
-          ).map(([key, label]) => (
-            <label key={key} className="flex items-center justify-between text-sm">
-              {label}
-              <input
-                type="checkbox"
-                checked={settings[key]}
-                onChange={(event) => setSettings((current) => ({ ...current, [key]: event.target.checked }))}
-              />
-            </label>
-          ))}
-          {user.hideBalances && !settings.hideBalances ? (
-            <TextField
-              label="4-digit password"
-              type="password"
-              inputMode="numeric"
-              autoComplete="off"
-              minLength={4}
-              maxLength={4}
-              value={pin}
-              onChange={(event) => setPin(event.target.value.replace(/\D/g, "").slice(0, 4))}
-              required
-            />
-          ) : null}
-          <Button type="submit" variant="secondary" className="w-full">
-            Save settings
-          </Button>
-        </form>
         <Button type="button" variant="danger" className="w-full" onClick={logout}>
           Log off
         </Button>

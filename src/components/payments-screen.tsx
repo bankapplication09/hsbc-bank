@@ -1,15 +1,34 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ArrowLeftRight } from "lucide-react";
 import { formatSortCode } from "@/lib/format";
+import { demoStore } from "@/lib/demo-store";
 import { ApiError, api } from "@/lib/client";
-import { Button, ErrorState, PageHeader, TextField } from "./ui";
+import { BankingPageIntro } from "./page-intro";
+import { formatDate } from "@/lib/format";
+import { formatGBP } from "@/lib/money";
+import { MetricCard, MetricGrid } from "@/components/banking/metrics";
+import { Button, Card, EmptyState, ErrorState, PageHeader, SectionHeader, SelectField, TextField } from "./ui";
 import { useToast } from "./providers";
 
 type Account = { id: string; name: string; accountNumber: string; sortCode: string; availableBalance: string };
+type Payee = { id: string; name: string; sortCode: string; accountNumber: string; accountNumberMasked?: string };
+type RecentTxn = { id: string; description: string; amount: string; type: string; transactionDate: string };
 
-export function PaymentsScreen({ accounts, hidden }: { accounts: Account[]; hidden: boolean }) {
+export function PaymentsScreen({
+  accounts,
+  payees,
+  hidden,
+  recent = [],
+}: {
+  accounts: Account[];
+  payees: Payee[];
+  hidden: boolean;
+  recent?: RecentTxn[];
+}) {
   const params = useSearchParams();
   const initial = params.get("mode") === "receive" ? "receive" : "transfer";
   const [mode, setMode] = useState<"transfer" | "receive">(initial);
@@ -19,104 +38,359 @@ export function PaymentsScreen({ accounts, hidden }: { accounts: Account[]; hidd
   ] as const;
 
   return (
-    <div>
+    <div className="md:pt-2">
       <PageHeader title="Payments" />
-      <div className="px-5">
-        <div className="flex gap-2 overflow-x-auto pb-3">
+      <div className="space-y-4 px-4 md:px-0">
+        <BankingPageIntro
+          title="Move money securely"
+          description="Transfer between your savings accounts or share details to receive a payment."
+          icon={ArrowLeftRight}
+          imageSrc="/ui/hero-payments.svg"
+        />
+        <MetricGrid>
+          <MetricCard label="Accounts" value={String(accounts.length)} hint="Linked savings" />
+          <MetricCard label="Saved payees" value={String(payees.length)} />
+          <MetricCard label="Transfer limit (demo)" value="£25,000" hint="Per day between own accounts" />
+          <MetricCard label="Processing" value="Immediate" hint="Demo transfers post at once" />
+        </MetricGrid>
+        <div className="flex gap-2 overflow-x-auto pb-1">
           {tabs.map(([id, label]) => (
             <button
               key={id}
               type="button"
               onClick={() => setMode(id)}
-              className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium ${mode === id ? "bg-neutral-950 text-white" : "bg-white ring-1 ring-line"}`}
+              className={`focus-ring shrink-0 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+                mode === id ? "bg-brand text-white" : "border border-line bg-surface text-charcoal hover:bg-brand-soft/40"
+              }`}
             >
               {label}
             </button>
           ))}
         </div>
-        {mode === "transfer" ? <TransferForm /> : null}
-        {mode === "receive" ? <ReceiveDetails accounts={accounts} hidden={hidden} /> : null}
+        {mode === "transfer" ? <TransferHub accounts={accounts} payees={payees} recent={recent} hidden={hidden} /> : null}
+        {mode === "receive" ? <ReceiveDetails accounts={accounts} hidden={hidden} recent={recent} /> : null}
       </div>
     </div>
   );
 }
 
-function TransferForm() {
+function TransferHub({
+  accounts,
+  payees,
+  recent,
+  hidden,
+}: {
+  accounts: Account[];
+  payees: Payee[];
+  recent: RecentTxn[];
+  hidden: boolean;
+}) {
+  const [kind, setKind] = useState<"own" | "payee" | "add-payee">("own");
+  const kinds = [
+    ["own", "Own accounts"],
+    ["payee", "Saved payees"],
+    ["add-payee", "Add payee"],
+  ] as const;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        {kinds.map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setKind(id)}
+            className={`focus-ring rounded-full px-3 py-1.5 text-xs font-medium ${
+              kind === id ? "bg-charcoal text-white" : "bg-mist text-charcoal"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {kind === "own" ? <OwnAccountTransfer accounts={accounts} /> : null}
+      {kind === "payee" ? <PayeeTransfer payees={payees} accounts={accounts} /> : null}
+      {kind === "add-payee" ? <AddPayeeDemo /> : null}
+      {recent.length > 0 ? (
+        <Card padding="none">
+          <div className="border-b border-line px-4 py-2">
+            <SectionHeader title="Recent activity" description="Latest completed entries on your accounts." />
+          </div>
+          {recent.map((txn) => (
+            <Link key={txn.id} href={`/transactions/${txn.id}`} className="flex justify-between border-b border-line px-4 py-3 text-sm last:border-b-0 hover:bg-mist/50">
+              <span className="min-w-0 truncate pr-3">{txn.description}</span>
+              <span className="shrink-0 font-medium tabular-nums">
+                {hidden ? "£ ••••" : formatGBP(txn.amount)}
+                <span className="block text-right text-xs font-normal text-muted">{formatDate(txn.transactionDate)}</span>
+              </span>
+            </Link>
+          ))}
+        </Card>
+      ) : null}
+    </div>
+  );
+}
+
+function OwnAccountTransfer({ accounts }: { accounts: Account[] }) {
   const router = useRouter();
   const toast = useToast();
+  const [step, setStep] = useState<"form" | "review">("form");
+  const [from, setFrom] = useState(accounts[0]?.accountNumber ?? "");
+  const [to, setTo] = useState(accounts[1]?.accountNumber ?? "");
+  const [amount, setAmount] = useState("");
+  const [reference, setReference] = useState("");
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  async function submit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
+
+  if (accounts.length < 2) {
+    return (
+      <EmptyState title="Need two accounts" body="Transfers between your own accounts require at least two savings accounts." />
+    );
+  }
+
+  async function confirm() {
     setBusy(true);
     setError("");
     try {
       await api("/api/transfers", {
         method: "POST",
         body: JSON.stringify({
-          fromAccountNumber: data.get("fromAccountNumber"),
-          toAccountNumber: data.get("toAccountNumber"),
-          amount: data.get("amount"),
-          reference: data.get("reference") || undefined,
+          fromAccountNumber: from,
+          toAccountNumber: to,
+          amount,
+          reference: reference || undefined,
         }),
       });
       toast("Transfer complete");
-      router.push("/home");
+      router.push("/transactions");
       router.refresh();
     } catch (cause) {
       setError(cause instanceof ApiError ? cause.message : "Transfer failed");
+      setStep("form");
     } finally {
       setBusy(false);
     }
   }
+
   return (
-    <form onSubmit={submit} className="space-y-3 rounded-2xl bg-white p-4 ring-1 ring-line">
-      {error ? <ErrorState message={error} /> : null}
-      <TextField label="From account number" name="fromAccountNumber" inputMode="numeric" minLength={8} maxLength={8} placeholder="8 digits" required />
-      <TextField label="To account number" name="toAccountNumber" inputMode="numeric" minLength={8} maxLength={8} placeholder="8 digits" required />
-      <TextField label="Amount" name="amount" inputMode="decimal" placeholder="0.00" required />
-      <TextField label="Reference" name="reference" maxLength={18} />
-      <Button type="submit" className="w-full" disabled={busy}>
-        {busy ? "Moving…" : "Confirm transfer"}
-      </Button>
-    </form>
+    <>
+      <Card className="space-y-3">
+        {error ? <ErrorState message={error} /> : null}
+        {step === "form" ? (
+          <>
+            <SelectField label="From account" value={from} onChange={(e) => setFrom(e.target.value)}>
+              {accounts.map((account) => (
+                <option key={account.id} value={account.accountNumber}>
+                  {account.name} · {account.accountNumber}
+                </option>
+              ))}
+            </SelectField>
+            <SelectField label="To account" value={to} onChange={(e) => setTo(e.target.value)}>
+              {accounts.map((account) => (
+                <option key={account.id} value={account.accountNumber}>
+                  {account.name} · {account.accountNumber}
+                </option>
+              ))}
+            </SelectField>
+            <TextField label="Amount (£)" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+            <TextField label="Reference" value={reference} onChange={(e) => setReference(e.target.value)} maxLength={18} />
+            <TextField label="Payment date" type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} />
+            <p className="text-xs text-muted">Future-dated payments are illustrative in this demo — transfers post immediately when confirmed.</p>
+            <Button
+              type="button"
+              className="w-full"
+              onClick={() => {
+                if (!from || !to || from === to || !amount.trim()) {
+                  setError("Choose two different accounts and enter an amount.");
+                  return;
+                }
+                setError("");
+                setStep("review");
+              }}
+            >
+              Review transfer
+            </Button>
+          </>
+        ) : (
+          <>
+            <dl className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <dt className="text-muted">From</dt>
+                <dd className="font-medium">{from}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted">To</dt>
+                <dd className="font-medium">{to}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted">Amount</dt>
+                <dd className="font-semibold">£{amount}</dd>
+              </div>
+              {reference ? (
+                <div className="flex justify-between">
+                  <dt className="text-muted">Reference</dt>
+                  <dd>{reference}</dd>
+                </div>
+              ) : null}
+              <div className="flex justify-between">
+                <dt className="text-muted">Date</dt>
+                <dd>{formatDate(paymentDate)}</dd>
+              </div>
+            </dl>
+            <div className="grid grid-cols-2 gap-2">
+              <Button type="button" variant="secondary" onClick={() => setStep("form")}>
+                Back
+              </Button>
+              <Button type="button" disabled={busy} onClick={() => void confirm()}>
+                {busy ? "Sending…" : "Confirm"}
+              </Button>
+            </div>
+          </>
+        )}
+      </Card>
+    </>
   );
 }
 
-function ReceiveDetails({ accounts, hidden }: { accounts: Account[]; hidden: boolean }) {
+function PayeeTransfer({ payees, accounts }: { payees: Payee[]; accounts: Account[] }) {
+  const drafts = demoStore.listPayeeDrafts();
+  const all = [...payees, ...drafts.map((d) => ({ id: d.id, name: d.name, sortCode: d.sortCode, accountNumber: d.accountNumber }))];
+  return (
+    <div className="space-y-3">
+      <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+        Paying external payees is not enabled on savings accounts in this demo — select a payee to prepare details, then use Fund transfer in the menu for own-account moves.
+      </p>
+      {all.length === 0 ? (
+        <EmptyState title="No payees saved" body="Add a payee to keep their details on this device (demo)." />
+      ) : (
+        <Card padding="none">
+          {all.map((payee) => (
+            <div key={payee.id} className="border-b border-line px-4 py-3 last:border-b-0">
+              <p className="font-medium text-charcoal">{payee.name}</p>
+              <p className="text-xs text-muted">
+                {formatSortCode(payee.sortCode)} · {payee.accountNumber}
+              </p>
+            </div>
+          ))}
+        </Card>
+      )}
+      {accounts[0] ? (
+        <Link href={`/payments?mode=transfer`}>
+          <Button type="button" variant="secondary" className="w-full">
+            Transfer between own accounts
+          </Button>
+        </Link>
+      ) : null}
+    </div>
+  );
+}
+
+function AddPayeeDemo() {
+  const toast = useToast();
+  const [name, setName] = useState("");
+  const [sortCode, setSortCode] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [saved, setSaved] = useState(demoStore.listPayeeDrafts());
+
+  return (
+    <Card className="space-y-3">
+      <p className="text-xs text-muted">Saved on this device only (demonstration).</p>
+      <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} required />
+      <TextField label="Sort code" placeholder="00-00-00" value={sortCode} onChange={(e) => setSortCode(e.target.value)} required />
+      <TextField label="Account number" inputMode="numeric" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} required />
+      <Button
+        type="button"
+        className="w-full"
+        onClick={() => {
+          if (!name.trim() || !sortCode.trim() || !accountNumber.trim()) return;
+          demoStore.addPayeeDraft({ name: name.trim(), sortCode: sortCode.trim(), accountNumber: accountNumber.trim() });
+          setSaved(demoStore.listPayeeDrafts());
+          toast("Payee saved (demo)");
+          setName("");
+          setSortCode("");
+          setAccountNumber("");
+        }}
+      >
+        Save payee
+      </Button>
+      {saved.length > 0 ? (
+        <ul className="text-sm text-muted">
+          {saved.slice(0, 5).map((p) => (
+            <li key={p.id}>
+              {p.name} · {p.accountNumber}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </Card>
+  );
+}
+
+function ReceiveDetails({ accounts, hidden, recent }: { accounts: Account[]; hidden: boolean; recent: RecentTxn[] }) {
   const toast = useToast();
   const primary = accounts[0];
   const text = useMemo(() => {
     if (!primary) return "";
     return `Sort code ${formatSortCode(primary.sortCode)}\nAccount ${primary.accountNumber}\nName on account`;
   }, [primary]);
-  if (!primary) return null;
+  if (!primary) return <EmptyState title="No account" body="Open a savings account to receive payments." />;
   return (
-    <section className="rounded-2xl bg-white p-5 ring-1 ring-line">
-      <h2 className="text-base font-semibold">Share these details</h2>
-      <p className="mt-1 text-sm text-neutral-500">Share these details to receive a payment into this account.</p>
-      <dl className="mt-4 space-y-3 text-sm">
-        <div className="flex justify-between">
-          <dt className="text-neutral-500">Sort code</dt>
-          <dd className="font-medium">{hidden ? "••-••-••" : formatSortCode(primary.sortCode)}</dd>
+    <div className="space-y-4">
+      <Card>
+        <h2 className="text-base font-semibold text-charcoal">Share these details</h2>
+        <p className="mt-1 text-sm text-muted">Use these to receive a payment into your savings account.</p>
+        <dl className="mt-4 space-y-3 text-sm">
+          <div className="flex justify-between">
+            <dt className="text-muted">Sort code</dt>
+            <dd className="font-medium">{hidden ? "••-••-••" : formatSortCode(primary.sortCode)}</dd>
+          </div>
+          <div className="flex justify-between">
+            <dt className="text-muted">Account number</dt>
+            <dd className="font-medium">{hidden ? "********" : primary.accountNumber}</dd>
+          </div>
+        </dl>
+        <Button
+          type="button"
+          variant="secondary"
+          className="mt-4 w-full"
+          onClick={() => {
+            void navigator.clipboard.writeText(text);
+            toast("Details copied");
+          }}
+        >
+          Copy account details
+        </Button>
+      </Card>
+      <Card padding="md" className="space-y-3">
+        <SectionHeader title="Receiving methods (demo)" description="How payers can send money to your UK account." />
+        <ul className="list-inside list-disc text-sm text-muted">
+          <li>Domestic Faster Payment using sort code and account number</li>
+          <li>International payment — SWIFT/BIC details available in live banking</li>
+          <li>From another of your accounts — use Transfer</li>
+        </ul>
+        <div className="mx-auto grid h-32 w-32 place-items-center rounded-lg border border-dashed border-line bg-mist text-center text-[10px] text-muted">
+          QR for payee details (demo)
         </div>
-        <div className="flex justify-between">
-          <dt className="text-neutral-500">Account number</dt>
-          <dd className="font-medium">{hidden ? "********" : primary.accountNumber}</dd>
-        </div>
-      </dl>
-      <Button
-        type="button"
-        variant="secondary"
-        className="mt-4 w-full"
-        onClick={() => {
-          void navigator.clipboard.writeText(text);
-          toast("Details copied");
-        }}
-      >
-        Copy details
-      </Button>
-    </section>
+      </Card>
+      {recent.filter((t) => t.type === "CREDIT").length > 0 ? (
+        <Card padding="none">
+          <div className="border-b border-line px-4 py-2 text-xs font-semibold uppercase text-muted">Recent incoming</div>
+          {recent
+            .filter((t) => t.type === "CREDIT")
+            .slice(0, 5)
+            .map((txn) => (
+              <Link key={txn.id} href={`/transactions/${txn.id}`} className="block border-b border-line px-4 py-3 text-sm last:border-b-0 hover:bg-mist/50">
+                {txn.description} · {hidden ? "£ ••••" : formatGBP(txn.amount)}
+              </Link>
+            ))}
+        </Card>
+      ) : null}
+      <Link href="/transactions?view=IN">
+        <Button type="button" variant="ghost" className="w-full">
+          View all incoming transactions
+        </Button>
+      </Link>
+    </div>
   );
 }
