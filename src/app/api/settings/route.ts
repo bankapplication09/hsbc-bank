@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { badRequest, json, readJson, route } from "@/lib/http";
+import { badRequest, forbidden, json, readJson, route } from "@/lib/http";
 import { settingsSchema } from "@/lib/validation";
 import { requireUserApi, verifyPassword } from "@/server/auth";
 import { serializeUser } from "@/server/serialize";
@@ -7,6 +7,12 @@ import { serializeUser } from "@/server/serialize";
 export const PATCH = route(async (req) => {
   const current = await requireUserApi();
   const input = await readJson(req, settingsSchema);
+  if (
+    input.notifyTransactions !== current.user.notifyTransactions ||
+    input.notifyStatements !== current.user.notifyStatements
+  ) {
+    throw forbidden("Alert preferences cannot be changed in this app.");
+  }
   const revealing = current.user.hideBalances && !input.hideBalances;
   if (revealing) {
     if (!input.pin) throw badRequest("Enter your 4-digit password");

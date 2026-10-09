@@ -164,6 +164,52 @@ export async function settlePending(
   });
 }
 
+export function transactionBalanceDelta(type: "CREDIT" | "DEBIT", amountPence: bigint) {
+  return type === "CREDIT" ? amountPence : -amountPence;
+}
+
+export async function applyBalanceDelta(tx: Tx, accountId: string, deltaPence: bigint) {
+  await tx.$queryRaw`SELECT id FROM accounts WHERE id = CAST(${accountId} AS uuid) FOR UPDATE`;
+  const account = await tx.account.findUnique({ where: { id: accountId } });
+  if (!account) throw notFound("Account not found");
+  const next = toPence(account.currentBalance.toString()) + deltaPence;
+  if (next < 0n) throw badRequest("Insufficient available balance");
+  const balance = fromPence(next);
+  await tx.account.update({
+    where: { id: accountId },
+    data: { currentBalance: balance, availableBalance: balance },
+  });
+  return balance;
+}
+
+export async function setAccountBalances(tx: Tx, accountId: string, balance: string) {
+  await tx.$queryRaw`SELECT id FROM accounts WHERE id = CAST(${accountId} AS uuid) FOR UPDATE`;
+  const normalized = normaliseAmount(balance);
+  if (toPence(normalized) < 0n) throw badRequest("Balance cannot be negative");
+  await tx.account.update({
+    where: { id: accountId },
+    data: { currentBalance: normalized, availableBalance: normalized },
+  });
+  return normalized;
+}
+
+export async function adminDeleteTransaction(tx: Tx, transactionId: string) {
+  const existing = await tx.transaction.findUnique({
+    where: { id: transactionId },
+    include: { reversedBy: { select: { id: true } } },
+  });
+  if (!existing) throw notFound("Transaction not found");
+  if (existing.reversedBy) throw badRequest("Remove the reversal entry first");
+  if (existing.status === "REVERSED") throw badRequest("Reversed transactions cannot be deleted");
+
+  if (existing.status === "COMPLETED") {
+    const delta = transactionBalanceDelta(existing.type, toPence(existing.amount.toString()));
+    await applyBalanceDelta(tx, existing.accountId, -delta);
+  }
+  await tx.transaction.delete({ where: { id: existing.id } });
+  return existing;
+}
+
 export async function reverseTransaction(tx: Tx, transactionId: string, actorId: string, reason: string) {
   const original = await tx.transaction.findUnique({
     where: { id: transactionId },

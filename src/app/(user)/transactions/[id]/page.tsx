@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { formatDateLong, formatTime, humanise } from "@/lib/format";
 import { formatGBP } from "@/lib/money";
+import { isStaffBankSideTransaction } from "@/lib/staff-bank-transactions";
 import { requireUserPage } from "@/server/auth";
 import { getOwnedTransaction } from "@/server/queries";
 import { PageHeader, StatusBadge } from "@/components/ui";
@@ -21,7 +22,9 @@ export default async function TransactionDetailPage({ params }: { params: Promis
     ["Account", txn.account.name],
     ["Balance after", hidden ? "£ ••••••" : formatGBP(txn.balanceAfter.toString())],
     ["Category", txn.category],
-    ...(txn.notes ? [["Notes", txn.notes] as const] : []),
+    ...(txn.notes && !isStaffBankSideTransaction({ merchant: txn.merchant, description: txn.description })
+      ? [["Notes", txn.notes] as const]
+      : []),
   ];
   return (
     <div>

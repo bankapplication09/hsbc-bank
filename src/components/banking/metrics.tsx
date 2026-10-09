@@ -34,9 +34,10 @@ export function MetricCard({
 }
 
 export function DemoNotice({ children }: { children?: React.ReactNode }) {
+  if (!children) return null;
   return (
-    <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">
-      {children ?? "Demonstration only — illustrative data and actions do not open real products or move live money."}
+    <p className="rounded-md border border-line bg-mist px-3 py-2 text-xs leading-relaxed text-muted">
+      {children}
     </p>
   );
 }

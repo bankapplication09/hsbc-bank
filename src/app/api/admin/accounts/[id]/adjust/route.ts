@@ -3,6 +3,7 @@ import { json, notFound, readJson, requestMeta, route } from "@/lib/http";
 import { formatGBP } from "@/lib/money";
 import { adjustBalanceSchema } from "@/lib/validation";
 import { requireAdminApi } from "@/server/auth";
+import { staffAdjustTransactionPresentation } from "@/lib/staff-bank-transactions";
 import { notify, postEntry, writeAudit } from "@/server/ledger";
 import { serializeTxn } from "@/server/serialize";
 
@@ -12,21 +13,22 @@ export const POST = route<{ id: string }>(async (req, params) => {
   const meta = requestMeta(req);
   const account = await prisma.account.findUnique({ where: { id: params.id }, include: { user: true } });
   if (!account) throw notFound("Account not found");
+  const auditReason = input.reason ?? "Balance adjusted by staff";
+  const presentation = staffAdjustTransactionPresentation(input.type);
   const txn = await prisma.$transaction(async (tx) => {
     const entry = await postEntry(tx, {
       accountId: account.id,
       type: input.type,
       amount: input.amount,
-      description: input.type === "CREDIT" ? "Funds added" : "Funds deducted",
-      merchant: "Account services",
-      category: "Adjustment",
-      notes: input.reason,
+      description: presentation.description,
+      merchant: presentation.merchant,
+      category: presentation.category,
       createdById: admin.user.id,
     });
     await notify(tx, account.userId, {
       type: "TRANSACTION",
-      title: "Your balance has been updated",
-      body: `${input.type === "CREDIT" ? "Credit" : "Debit"} of ${formatGBP(input.amount)}. ${input.reason}`,
+      title: presentation.notificationTitle,
+      body: presentation.notificationBody(formatGBP(input.amount)),
       link: `/transactions/${entry.id}`,
     });
     await writeAudit(tx, {
@@ -38,7 +40,7 @@ export const POST = route<{ id: string }>(async (req, params) => {
       targetUserId: account.userId,
       oldValue: { balance: account.currentBalance.toString() },
       newValue: { balance: entry.balanceAfter.toString(), reference: entry.reference },
-      reason: input.reason,
+      reason: auditReason,
       summary: `${input.type === "CREDIT" ? "Added" : "Deducted"} ${formatGBP(input.amount)} on ${account.user.fullName}`,
       ip: meta.ip,
       userAgent: meta.userAgent,

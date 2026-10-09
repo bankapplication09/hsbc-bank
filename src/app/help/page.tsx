@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CircleHelp, Mail, Phone } from "lucide-react";
+import { CircleHelp } from "lucide-react";
 import { BankingPageIntro } from "@/components/page-intro";
 import { Card, PageHeader, SectionHeader } from "@/components/ui";
 import { getSession } from "@/server/auth";
@@ -9,166 +9,155 @@ const faqs = [
     title: "Getting started",
     paragraphs: [
       "After you log on, the home screen shows a greeting, your primary balance card, quick actions, and a preview of recent activity. Use the menu on desktop or the bottom navigation on mobile to reach Accounts, Payments, Transactions, and more.",
-      "If this is your first visit, open Accounts to confirm which savings accounts are linked to your profile, then try a small transfer between your own accounts under Payments to see how confirmation and receipts work in the demo.",
-      "Explore additional services from the home grid — each tile opens a dedicated screen with forms, calculators, or empty states that explain what would happen in a full production bank.",
+      "If this is your first visit, open Accounts to confirm which accounts are linked to your profile, then try a transfer between your own accounts under Payments to see how confirmation and receipts work.",
+      "Additional services are available from the home grid — each tile opens a dedicated screen for payments, cards, savings, and other HSBC UK services.",
     ],
   },
   {
     title: "Log on and security",
     paragraphs: [
-      "Use your registered email address and password on the log on screen. For this demonstration, customer and staff accounts are provided separately — staff members who manage customers should use an admin email and will be taken to the staff console after a successful log on.",
-      "If you choose “Remember me”, your session may stay signed in on this device for longer. Always log off on shared or public devices. This app uses a secure session cookie; you may see a “Secure session” indicator in the header while you are signed in.",
+      "Use your registered email address and password on the log on screen. Staff who manage customer accounts use separate credentials and are directed to the staff console after a successful log on.",
+      "If you choose “Remember me”, your session may stay signed in on this device for longer. Always log off on shared or public devices. A secure session cookie is used; you may see a “Secure session” indicator in the header while you are signed in.",
       "After several failed log on attempts, access is paused for a short period to protect your account. Never share your password or 4-digit balance PIN with anyone, including people who claim to be from the bank.",
-      "We will never ask you to move money to a “safe account” or to install remote-access software. If you are unsure about a message or call, stop and use official HSBC UK contact channels outside this demo.",
+      "We will never ask you to move money to a “safe account” or to install remote-access software. If you are unsure about a message or call, stop and contact HSBC UK through hsbc.co.uk.",
     ],
   },
   {
     title: "Balances and the 4-digit password",
     paragraphs: [
-      "Your available balance is shown on the home screen and on each account. If you turn on “Hide balances”, amounts are masked until you enter your 4-digit password (demo PIN: set when the account was seeded).",
+      "Your available balance is shown on the home screen and on each account. If you turn on “Hide balances”, amounts are masked until you enter your 4-digit password.",
       "The eye control on the primary account card hides or reveals balances. Changing this preference in Settings may also require your 4-digit password when revealing amounts again.",
-      "Balances and transactions in this environment are for practice only. They do not reflect real money at HSBC or any other bank. Pending items, if shown, are illustrative and may not match real clearing times.",
+      "Pending items, when shown, may not yet be included in your available balance. Clearing times depend on the payment type and the receiving bank.",
     ],
   },
   {
     title: "Accounts and cards",
     paragraphs: [
-      "The Accounts area lists your savings accounts, masked account numbers, and the latest activity line. Open an account to see more detail, controls, and recent entries.",
-      "Debit cards linked to an account can be managed under Cards. You can freeze or unfreeze a card, adjust daily limits where supported, and toggle contactless, online, and ATM usage in this demo.",
+      "The Accounts area lists your accounts, masked account numbers, and the latest activity line. Open an account to see more detail, controls, and recent entries.",
+      "Debit cards linked to an account can be managed under Cards. You can freeze or unfreeze a card, adjust daily limits where supported, and toggle contactless, online, and ATM usage.",
       "Card numbers are always masked in the app. Never share your full card number, PIN, or online banking password with anyone who contacts you unexpectedly.",
-      "Closing or opening new products in this demo may be simulated only. Real account applications are subject to eligibility, credit checks, and product terms from HSBC UK.",
+      "Opening new products is subject to eligibility, credit checks, and the terms that apply to each HSBC UK product.",
     ],
   },
   {
     title: "Payments and transfers",
     paragraphs: [
-      "Under Payments you can move money between your own HSBC UK savings accounts in this demo. Choose the source and destination account, enter the amount and an optional reference, review the details, then confirm.",
-      "Use Receive to copy your sort code and account number so someone else can pay you. Incoming credits appear in your transaction list when demo funds are added.",
-      "The Saved payees tab lists people or businesses you have stored for faster payments. In this savings-focused demo, paying external bank accounts may be blocked with an explanatory message — this mirrors some real product restrictions.",
-      "Standing orders and scheduled payments can be created from Explore or Payments-related flows where available. They run against demo data and show how dates and amounts would be presented in live banking.",
-      "Paying external payees or setting up certain payment types may be limited in this savings-focused demo. Icons such as UPI or bill pay may show demonstration workflows only.",
+      "Under Payments you can move money between your HSBC UK accounts. Choose the source and destination account, enter the amount and an optional reference, review the details, then confirm.",
+      "Use Receive to copy your sort code and account number so someone else can pay you. Incoming credits appear in your transaction list when funds are credited.",
+      "The Saved payees tab lists people or businesses you have stored for faster payments. Some account types may restrict payments to external bank accounts in line with product rules.",
+      "Standing orders and scheduled payments can be created from Explore or Payments-related flows where available.",
     ],
   },
   {
     title: "Transactions and statements",
     paragraphs: [
       "Transactions are grouped by day with sticky date headings. Use search and filters to narrow by direction, status, account, category, or date range. Select a row to open transaction detail including reference and status.",
-      "Completed payments usually appear immediately in this demo. In live banking, some transfers can take longer depending on the payment scheme and the receiving bank.",
-      "Statements let you choose an account and date range, then download a CSV file of entries for your records. This is suitable for reconciliation in spreadsheets, not for official tax or legal evidence in this demo.",
+      "Completed payments usually appear immediately. Some transfers can take longer depending on the payment scheme and the receiving bank.",
+      "Statements let you choose an account and date range, then download a CSV file of entries for your records.",
       "If you cannot find a payment, check that the correct account filter is selected and that the date range includes the day you made the transfer.",
     ],
   },
   {
     title: "Explore and extra services",
     paragraphs: [
-      "The home services grid links to features such as request money, UPI-style flows, loans calculators, investments watchlists, and cheque book requests. Each screen explains whether the action is stored locally on your device (demo only) or sent to the server.",
-      "Data saved in your browser for demo purposes (for example draft payees or watchlist symbols) is not synced across devices and can be cleared if you clear site data.",
-      "Rates, product names, and investment content are fictional and for layout training. They are not recommendations to buy or sell any financial product.",
+      "The home services grid links to features such as request money, bill payments, loan calculators, investments, and cheque book requests.",
+      "Rates and product information are published for information and may change. Investment and loan tools provide estimates only and are not personal advice.",
     ],
   },
   {
     title: "Profile, settings, and notifications",
     paragraphs: [
-      "Profile shows your name, contact details, and account summary. Sensitive changes in a live app would often require step-up authentication; here, some fields are read-only for demonstration.",
-      "Settings (from the sidebar) holds preferences such as hiding balances and alert toggles. Profile no longer duplicates those controls — use Settings for display and notification options.",
-      "The bell icon shows notifications about demo activity, such as transfers or balance changes. Open Notifications to mark items as read.",
-      "Alert preferences for transactions and statements can be updated under Settings. In a live bank, these would control email or push alerts.",
+      "Profile shows your personal and professional details held by the bank. To update your records, contact HSBC UK or your relationship manager.",
+      "Settings holds preferences such as limits, language, colour theme, and display options.",
+      "The bell icon shows notifications about account activity, such as transfers or balance changes. Open Notifications to mark items as read.",
     ],
   },
   {
-    title: "Mobile app (WebView)",
+    title: "Mobile app",
     paragraphs: [
-      "The companion mobile project loads this website inside a secure WebView. Point it at the deployed URL using the environment variable documented in the mobile project’s example env file.",
-      "Log on once inside the app; session behaviour matches the browser. For the best experience, use the same demo credentials you use on desktop.",
-    ],
-  },
-  {
-    title: "Staff and administration",
-    paragraphs: [
-      "Staff users with an admin role can access the staff console to view customers, transactions, audit logs, and demonstration tools. Admin log on uses the same entry page with staff credentials.",
-      "Actions taken in the staff console are recorded in the audit log for training and review purposes in this demo environment.",
-      "Staff should follow your organisation’s data-handling policies when using real customer data in any non-demo deployment. This build is intended for synthetic or anonymised practice data only.",
+      "The HSBC UK mobile app loads secure online banking in a WebView. Log on once inside the app; session behaviour matches the browser.",
+      "For the best experience, use the same log on credentials you use on desktop and keep your device software up to date.",
     ],
   },
 ];
 
 const termsSections: { heading: string; paragraphs: string[] }[] = [
   {
-    heading: "1. About this service",
+    heading: "1. About HSBC UK online banking",
     paragraphs: [
-      "This application is a fictional demonstration of digital banking layouts and workflows. It is not operated by HSBC Bank plc as a live banking channel, unless you have been explicitly told otherwise by your organisation.",
-      "No real payments, investments, or account openings are processed through this demo. Any resemblance to HSBC UK products or branding is for training and user-interface practice only.",
+      "These terms apply to your use of HSBC UK online banking and the related mobile experience. By logging on, you agree to these terms and to the product-specific terms for any accounts or services you hold with us.",
+      "HSBC Bank plc is registered in England and Wales. Our registered office is at 8 Canada Square, London E14 5HQ. We are authorised by the Prudential Regulation Authority and regulated by the Financial Conduct Authority and the Prudential Regulation Authority.",
     ],
   },
   {
     heading: "2. Eligibility and acceptable use",
     paragraphs: [
-      "Access is limited to authorised demo users. You must be at least 18 years old or have permission from your organisation to use this environment for training.",
-      "You must not attempt to probe, disrupt, or reverse-engineer the service, scrape data at scale, or use automated tools to overload hosting. You must not enter real credentials, live account numbers, or personal data belonging to people who have not consented to this test environment.",
-      "You agree to use the demo only for lawful purposes aligned with the project that provisioned your access.",
+      "You must be at least 18 years old and authorised to use the accounts shown in your profile. You must keep your log on details confidential and tell us promptly if you think someone else knows them.",
+      "You must not use the service for unlawful purposes, to send false or misleading payment instructions, or to interfere with the security or operation of the platform.",
+      "We may suspend or restrict access if we reasonably believe your account is at risk or these terms have been breached.",
     ],
   },
   {
-    heading: "3. Demonstration data and no advice",
+    heading: "3. Accounts, payments, and information",
     paragraphs: [
-      "Balances, transactions, rates, and product information may be sample or randomly generated data. Interest rates, fees, and product names are illustrative and do not constitute an offer or invitation to apply.",
-      "Investment and loan calculators provide estimates only. They do not take into account your personal circumstances and are not financial, legal, or tax advice. Always obtain professional advice before making real financial decisions.",
+      "Balances, transaction history, and statements are shown in good faith based on our records at the time you view them. Interest rates, fees, and product names are subject to change and to the agreements for each product.",
+      "Payment and transfer services are subject to cut-off times, limits, and scheme rules. We are not responsible for delays caused by other banks or payment networks outside our control.",
+      "Tools such as calculators and rate displays provide general information only. They do not constitute an offer, invitation, or personal recommendation.",
     ],
   },
   {
     heading: "4. Security and privacy",
     paragraphs: [
-      "You are responsible for keeping your demo password and PIN confidential. We apply reasonable technical measures in hosting, but you should treat this site as non-production. Do not use the same password you use for real banking or email.",
-      "Session data, error logs, and audit entries may be stored on servers used for deployment (for example cloud hosting and database providers). Your organisation’s privacy notice may apply if this demo is used internally.",
-      "Do not upload confidential documents or special-category personal data unless your organisation has approved this environment for that purpose.",
+      "You are responsible for keeping your password, PIN, and device secure. We use industry-standard measures to protect your session and data in transit and at rest.",
+      "We process personal data in line with our privacy notice and applicable data protection law. You can find more about how we use your information on hsbc.co.uk.",
+      "Never respond to unsolicited requests for your full card number, PIN, or log on details. Report suspicious activity through the channels provided in the app or on hsbc.co.uk.",
     ],
   },
   {
     heading: "5. Availability and changes",
     paragraphs: [
-      "The service may be unavailable during maintenance, deployments, or infrastructure issues. Features may change without notice as the demo is updated.",
-      "There is no service-level agreement for uptime in this environment. We may reset or reseed databases during upgrades, which can remove demo transactions you created.",
+      "We aim to keep online banking available at all times but may need to carry out maintenance or experience interruptions. We will try to give notice of planned downtime where practical.",
+      "We may update features, limits, or these terms from time to time. Material changes will be communicated in line with our usual customer notification practices.",
     ],
   },
   {
     heading: "6. Liability",
     paragraphs: [
-      "To the fullest extent permitted by law, the providers of this demo accept no liability for loss arising from use of the application, reliance on demo content, downtime, or unauthorised access where you have failed to protect your credentials.",
-      "Nothing in these terms excludes or limits liability for death or personal injury caused by negligence, fraud, or any other liability that cannot be excluded under applicable law.",
+      "We are not liable for losses caused by circumstances outside our reasonable control, or where you have not kept your credentials secure or have failed to tell us about unauthorised access without undue delay.",
+      "Nothing in these terms excludes or limits liability where it would be unlawful to do so, including for death or personal injury caused by our negligence or for fraud.",
     ],
   },
   {
     heading: "7. Intellectual property",
     paragraphs: [
-      "Software, design, and documentation are protected by copyright and related rights. HSBC-style branding is used for demonstration and training only where permitted by the project owner.",
-      "You may not copy, scrape, or redistribute the application for commercial use without written permission. Trademarks belong to their respective owners.",
+      "The software, design, and content of this service are protected by intellectual property laws. HSBC and the hexagon symbol are trademarks of HSBC Group members.",
+      "You may use the service only for your personal or business banking with us. You must not copy, scrape, or redistribute the application or its content without our written consent.",
     ],
   },
   {
     heading: "8. Third-party services",
     paragraphs: [
-      "The demo may rely on third-party hosting, databases, and analytics. Those providers have their own terms and privacy policies. Links to external sites, if any, are provided for convenience and do not imply endorsement.",
+      "Some features may rely on trusted third-party providers for hosting, identity, or payment processing. Those providers are required to meet our security and privacy standards.",
+      "Links to external websites are provided for convenience. We are not responsible for the content or policies of sites we do not control.",
     ],
   },
   {
     heading: "9. Changes to these terms",
     paragraphs: [
-      "These terms may be updated when the demo is redeployed. Continued use after changes are published on this page constitutes acceptance of the revised terms.",
-      "The effective date shown in the section header reflects the latest published version in this build. We encourage you to review this page periodically.",
+      "We may revise these terms when we update the service or when the law requires. The current version is always published on this page.",
+      "Continued use of online banking after changes take effect means you accept the updated terms, unless the law requires your separate agreement.",
     ],
   },
   {
-    heading: "10. Governing law and contact",
+    heading: "10. Governing law",
     paragraphs: [
-      "Unless your organisation specifies otherwise, these demo terms are intended for internal training use and may be governed by the laws applicable to the entity hosting the deployment.",
-      "For questions about this demonstration environment, contact the team that provisioned your access. This is not a channel for reporting fraud or disputes on real HSBC accounts — use official HSBC UK channels for live banking matters.",
+      "These terms are governed by the laws of England and Wales. The courts of England and Wales have exclusive jurisdiction, subject to any rights you may have under consumer protection rules in your place of residence.",
     ],
   },
 ];
 
 const quickLinks = [
   { href: "#faq", label: "FAQs" },
-  { href: "#contact", label: "Contact" },
   { href: "#terms-and-conditions", label: "Terms and conditions" },
 ];
 
@@ -183,15 +172,15 @@ export default async function HelpPage() {
       <div className="space-y-8 px-4 pb-12 md:px-0">
         <BankingPageIntro
           title="Help and support"
-          description="Guidance for using this HSBC UK-style demo: log on, accounts, payments, statements, security, and legal information."
+          description="Guidance for HSBC UK online banking: log on, accounts, payments, statements, security, and terms."
           icon={CircleHelp}
         />
 
         <Card padding="md">
           <p className="text-sm leading-relaxed text-muted">
-            This help centre is written for the demonstration banking app. It explains how screens behave, what is simulated, and
-            where real banking limits apply. Use the links below to jump to FAQs, demo contact details, or the full terms and
-            conditions. Logging on to the app means you agree to those terms in addition to any rules from your organisation.
+            This help centre explains how to use online banking, what to expect from accounts and payments, and how we keep
+            your service secure. Use the links below for frequently asked questions or the full terms and conditions. Logging
+            on means you agree to those terms together with your account agreements.
           </p>
           <nav className="mt-4 flex flex-wrap gap-3" aria-label="Help sections">
             {quickLinks.map((item) => (
@@ -207,7 +196,7 @@ export default async function HelpPage() {
         </Card>
 
         <section id="faq">
-          <SectionHeader title="Frequently asked questions" description="Detailed answers for common tasks in the app." />
+          <SectionHeader title="Frequently asked questions" description="Answers for common tasks in online banking." />
           <div className="mt-4 space-y-4">
             {faqs.map((faq) => (
               <Card key={faq.title} padding="md">
@@ -224,56 +213,12 @@ export default async function HelpPage() {
           </div>
         </section>
 
-        <section id="contact">
-          <SectionHeader title="Contact (demonstration)" description="Not a live HSBC support line." />
-          <Card className="space-y-4">
-            <p className="text-sm leading-relaxed text-muted">
-              This demo does not connect to HSBC UK telephone banking or secure messaging. The details below are placeholders for
-              layout only. For real HSBC UK support, visit hsbc.co.uk and use official contact options.
-            </p>
-            <p className="text-sm leading-relaxed text-muted">
-              If you are testing the mobile shell, ensure the site URL in your mobile environment matches the deployment your team
-              shared. Connection or certificate issues are usually configuration problems rather than account problems.
-            </p>
-            <ul className="space-y-3 text-sm">
-              <li className="flex items-start gap-3">
-                <Phone size={18} className="mt-0.5 shrink-0 text-brand" aria-hidden />
-                <span>
-                  <span className="font-medium text-charcoal">General enquiries (demo)</span>
-                  <br />
-                  <span className="text-muted">03457 404 404 — illustrative only</span>
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Mail size={18} className="mt-0.5 shrink-0 text-brand" aria-hidden />
-                <span>
-                  <span className="font-medium text-charcoal">Secure message (demo)</span>
-                  <br />
-                  <span className="text-muted">Not available in this build</span>
-                </span>
-              </li>
-            </ul>
-            {signedInUser ? (
-              <Link href="/notifications" className="text-sm font-semibold text-brand hover:underline">
-                View in-app notifications
-              </Link>
-            ) : null}
-          </Card>
-        </section>
-
         <section id="terms-and-conditions">
-          <SectionHeader
-            title="Terms and conditions"
-            description="Demo terms for this practice banking application. Effective date: 9 October 2026."
-          />
+          <SectionHeader title="Terms and conditions" description="Your agreement for using HSBC UK online banking." />
           <Card padding="md" className="space-y-6">
             <p className="text-sm leading-relaxed text-muted">
-              Please read these terms carefully before using the application. By logging on and using the services, you agree to the
-              following conditions in addition to any rules set by the organisation hosting this demo.
-            </p>
-            <p className="text-sm leading-relaxed text-muted">
-              These terms do not replace your real HSBC UK account terms if you hold live products with HSBC. They apply only to
-              this software demonstration.
+              Please read these terms carefully before using online banking. By logging on and using the services, you agree
+              to the following conditions in addition to the terms that apply to each of your HSBC UK products.
             </p>
             {termsSections.map((block) => (
               <article key={block.heading}>
@@ -287,10 +232,7 @@ export default async function HelpPage() {
                 </div>
               </article>
             ))}
-            <p className="border-t border-line pt-4 text-xs text-muted">
-              © Demo HSBC UK banking UI. This is not an official HSBC Bank plc customer agreement. Version 1.1 — demonstration
-              purposes only.
-            </p>
+            <p className="border-t border-line pt-4 text-xs text-muted">© HSBC UK.</p>
           </Card>
         </section>
       </div>

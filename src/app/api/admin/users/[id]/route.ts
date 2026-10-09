@@ -42,12 +42,31 @@ export const PATCH = route<{ id: string }>(async (req, params) => {
   if (!existing || existing.role !== "USER") throw notFound("Customer not found");
   const balancePinHash = input.balancePin ? await hashPassword(input.balancePin) : undefined;
   const updated = await prisma.$transaction(async (tx) => {
+    const dateOfBirth = input.dateOfBirth ? new Date(`${input.dateOfBirth}T00:00:00.000Z`) : undefined;
     const next = await tx.user.update({
       where: { id: existing.id },
       data: {
         fullName: input.fullName,
         email: input.email,
         phone: input.phone || null,
+        addressLine: input.addressLine ?? null,
+        city: input.city ?? null,
+        postcode: input.postcode ?? null,
+        occupation: input.occupation ?? null,
+        ...(dateOfBirth !== undefined ? { dateOfBirth } : {}),
+        nationality: input.nationality ?? null,
+        maritalStatus: input.maritalStatus ?? null,
+        employerName: input.employerName ?? null,
+        jobTitle: input.jobTitle ?? null,
+        workEmail: input.workEmail ?? null,
+        workPhone: input.workPhone ?? null,
+        workAddressLine: input.workAddressLine ?? null,
+        workCity: input.workCity ?? null,
+        workPostcode: input.workPostcode ?? null,
+        employmentStatus: input.employmentStatus ?? null,
+        ...(input.onlinePaymentLimit !== undefined
+          ? { onlinePaymentLimit: input.onlinePaymentLimit }
+          : {}),
         ...(balancePinHash ? { balancePinHash, hideBalances: true } : {}),
       },
     });

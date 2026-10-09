@@ -14,7 +14,7 @@ import {
   YAxis,
 } from "recharts";
 
-const BRAND = "#db0011";
+const BRAND = "#ba1110";
 const CHARCOAL = "#1a1a1a";
 
 export function SpendingByCategoryChart({

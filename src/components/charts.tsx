@@ -16,7 +16,7 @@ export function OverviewCharts({
             <XAxis dataKey="label" tick={{ fontSize: 12 }} />
             <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
             <Tooltip />
-            <Line type="monotone" dataKey="users" stroke="#db0011" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="users" stroke="#ba1110" strokeWidth={2} dot={false} />
           </LineChart>
         </ResponsiveContainer>
       </ChartCard>
@@ -39,7 +39,7 @@ export function OverviewCharts({
             <YAxis tick={{ fontSize: 12 }} />
             <Tooltip />
             <Bar dataKey="credits" fill="#067a46" radius={4} />
-            <Bar dataKey="debits" fill="#db0011" radius={4} />
+            <Bar dataKey="debits" fill="#ba1110" radius={4} />
           </BarChart>
         </ResponsiveContainer>
       </ChartCard>

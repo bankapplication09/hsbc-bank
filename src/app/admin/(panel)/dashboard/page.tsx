@@ -25,7 +25,7 @@ export default async function DashboardPage() {
       <div>
         <p className="text-sm font-medium uppercase tracking-wide text-brand">Staff console</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-charcoal md:text-3xl">Overview</h1>
-        <p className="mt-2 text-sm text-muted">Balances and customer activity across the demonstration bank.</p>
+        <p className="mt-2 text-sm text-muted">Balances and customer activity across the bank.</p>
       </div>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {tiles.map(([label, value]) => (

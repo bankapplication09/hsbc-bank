@@ -4,7 +4,10 @@
  * to compute balances.
  */
 
-export const MAX_AMOUNT_PENCE = 100_000_000n; // £1,000,000.00
+export const MAX_AMOUNT_PENCE = 100_000_000n; // £1,000,000.00 — customer-facing transfers and payments
+
+/** Upper bound for account balances and staff-posted amounts (matches Decimal(14, 2) in the database). */
+export const MAX_DB_AMOUNT_PENCE = 99_999_999_999_999n; // £999,999,999,999.99
 
 const DECIMAL_RE = /^(-)?(\d+)(?:\.(\d{1,2}))?$/;
 

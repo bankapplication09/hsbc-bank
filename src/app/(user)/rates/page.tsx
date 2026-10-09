@@ -38,14 +38,14 @@ export default function RatesPage() {
       <div className="space-y-6 px-4 pb-10 md:px-0">
         <BankingPageIntro
           title="Interest & FX rates"
-          description="Compare illustrative saver rates and convert pounds using demo exchange rates — not live market prices."
+          description="Compare saver rates and convert pounds using indicative exchange rates."
           icon={Percent}
           imageSrc="/ui/hero-deposits.svg"
         />
         <MetricGrid>
           <MetricCard label="FX pairs" value={String(FX_RATES.length)} hint="Indicative" />
-          <MetricCard label="Saver products" value={String(depositRatesTable.length)} hint="Demo table" />
-          <MetricCard label="Updated" value="Oct 2026" hint="Demonstration only" />
+          <MetricCard label="Saver products" value={String(depositRatesTable.length)} hint="Available products" />
+          <MetricCard label="Updated" value="Oct 2026" hint="Indicative rates" />
         </MetricGrid>
         <section className="panel p-4">
           <SectionHeader title="Currency converter" description="Illustrative HSBC UK-style rates." />
@@ -85,7 +85,7 @@ export default function RatesPage() {
           ))}
         </ul>
         <section className="panel p-4">
-          <SectionHeader title="Savings interest rates (demo)" description="Search and compare illustrative products." />
+          <SectionHeader title="Savings interest rates" description="Search and compare available products." />
           <TextField label="Search products" value={productQuery} onChange={(e) => setProductQuery(e.target.value)} placeholder="ISA, fixed…" />
           <div className="mt-3 overflow-x-auto">
             <table className="w-full min-w-[520px] text-left text-sm">

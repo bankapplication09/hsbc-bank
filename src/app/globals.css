@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand: #db0011;
-  --color-brand-dark: #b0000e;
+  --color-brand: #ba1110;
+  --color-brand-dark: #96100f;
   --color-brand-soft: #fff1f2;
   --color-ink: #1a1a1a;
   --color-charcoal: #2d2d2d;
@@ -29,6 +29,27 @@ body {
   margin: 0;
   background: var(--color-mist);
   color: var(--color-ink);
+}
+
+html[data-theme="dark"] {
+  --color-brand-soft: #2a1515;
+  --color-ink: #f3f4f6;
+  --color-charcoal: #e5e7eb;
+  --color-muted: #9ca3af;
+  --color-mist: #0c0e14;
+  --color-surface: #161b26;
+  --color-line: #2a3142;
+  --color-line-strong: #3d4659;
+  --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="hsbc"] {
+  --color-brand-soft: #fde8e8;
+  --color-mist: #faf6f6;
+  --color-surface: #fffefe;
+  --color-line: #ecd4d4;
+  --color-line-strong: #ddbaba;
+  --shadow-card: 0 1px 2px rgba(186, 17, 16, 0.06), 0 10px 28px rgba(186, 17, 16, 0.08);
 }
 
 button,

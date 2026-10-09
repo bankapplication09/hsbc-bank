@@ -2,6 +2,8 @@
 
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AppPreferencesProvider } from "@/components/app-preferences-provider";
+import { DocumentLoadCapture } from "@/components/document-load-capture";
 
 type Toast = { id: number; message: string };
 
@@ -24,6 +26,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={client}>
       <ToastContext.Provider value={value}>
+        <AppPreferencesProvider />
+        <DocumentLoadCapture />
         {children}
         <div className="pointer-events-none fixed inset-x-0 bottom-24 z-[60] flex flex-col items-center gap-2 px-4 md:bottom-6">
           {toasts.map((toast) => (

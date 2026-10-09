@@ -7,7 +7,7 @@ import {
   TRANSACTION_TYPES,
   USER_STATUSES,
 } from "./constants";
-import { MAX_AMOUNT_PENCE, toPence } from "./money";
+import { MAX_AMOUNT_PENCE, MAX_DB_AMOUNT_PENCE, toPence } from "./money";
 
 const trimmed = (min: number, max: number, label: string) =>
   z
@@ -39,6 +39,21 @@ export const amountSchema = z
   .regex(/^\d{1,9}(\.\d{1,2})?$/, "Enter an amount like 1000 or 1000.50")
   .refine((v) => toPence(v) > 0n, "Amount must be greater than £0.00")
   .refine((v) => toPence(v) <= MAX_AMOUNT_PENCE, "Amount cannot exceed £1,000,000.00");
+
+/** Staff console — no £1M cap; limited only by database decimal precision. */
+export const adminAmountSchema = z
+  .string({ required_error: "Amount is required" })
+  .trim()
+  .regex(/^\d{1,12}(\.\d{1,2})?$/, "Enter a valid amount (up to 12 digits before the decimal point)")
+  .refine((v) => toPence(v) > 0n, "Amount must be greater than £0.00")
+  .refine((v) => toPence(v) <= MAX_DB_AMOUNT_PENCE, "Amount is too large to store");
+
+export const adminBalanceSchema = z
+  .string({ required_error: "Balance is required" })
+  .trim()
+  .regex(/^\d{1,12}(\.\d{1,2})?$/, "Enter a valid balance")
+  .refine((v) => toPence(v) >= 0n, "Balance cannot be negative")
+  .refine((v) => toPence(v) <= MAX_DB_AMOUNT_PENCE, "Balance is too large to store");
 
 export const reasonSchema = trimmed(3, 200, "Reason");
 export const uuidSchema = z.string().uuid("Invalid identifier");
@@ -79,6 +94,12 @@ export const loginSchema = z.object({
     .optional()
     .transform((value) => (value ? value : undefined))
     .refine((value) => value === undefined || /^\d{6}$/.test(value), "Enter the 6-digit code"),
+  otp: z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => (value ? value : undefined))
+    .refine((value) => value === undefined || /^\d{6}$/.test(value), "Enter the 6-digit passcode"),
 });
 
 export const adminLoginSchema = z.object({
@@ -217,7 +238,7 @@ export const createUserSchema = z.object({
     .or(z.literal("").transform(() => undefined)),
   password: passwordPolicy,
   balancePin: z.string().regex(/^\d{4}$/, "Enter a 4-digit password"),
-  openingBalance: amountSchema.optional().or(z.literal("").transform(() => undefined)),
+  openingBalance: adminAmountSchema.optional().or(z.literal("").transform(() => undefined)),
 });
 
 export const updateUserSchema = z.object({
@@ -229,6 +250,36 @@ export const updateUserSchema = z.object({
     .regex(/^\+?[0-9 ]{7,20}$/, "Enter a valid phone number")
     .optional()
     .or(z.literal("").transform(() => undefined)),
+  addressLine: optionalText(120),
+  city: optionalText(80),
+  postcode: optionalText(12),
+  occupation: optionalText(80),
+  dateOfBirth: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Enter a valid date")
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
+  nationality: optionalText(80),
+  maritalStatus: optionalText(40),
+  employerName: optionalText(120),
+  jobTitle: optionalText(80),
+  workEmail: z
+    .string()
+    .trim()
+    .email("Enter a valid work email")
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
+  workPhone: z
+    .string()
+    .trim()
+    .regex(/^\+?[0-9 ]{7,20}$/, "Enter a valid phone number")
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
+  workAddressLine: optionalText(120),
+  workCity: optionalText(80),
+  workPostcode: optionalText(12),
+  employmentStatus: optionalText(60),
+  onlinePaymentLimit: adminBalanceSchema.optional(),
   balancePin: z
     .string()
     .regex(/^\d{4}$/, "Enter a 4-digit password")
@@ -249,21 +300,43 @@ export const accountStatusSchema = z.object({
 
 export const adjustBalanceSchema = z.object({
   type: z.enum(TRANSACTION_TYPES),
-  amount: amountSchema,
+  amount: adminAmountSchema,
+  reason: reasonSchema.optional(),
+});
+
+export const setAccountBalanceSchema = z.object({
+  balance: adminBalanceSchema,
   reason: reasonSchema,
+});
+
+export const updateAccountSchema = z.object({
+  name: trimmed(2, 80, "Account name").optional(),
+  dailyLimit: adminAmountSchema.optional(),
+  cardLast4: z
+    .string()
+    .trim()
+    .regex(/^\d{4}$/, "Enter the last 4 digits of the card")
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
+  reason: reasonSchema,
+});
+
+export const adminDeleteNotificationSchema = z.object({
+  reason: reasonSchema.optional(),
+});
+
+export const adminDeleteAuditSchema = z.object({
+  reason: reasonSchema.optional(),
 });
 
 export const createTransactionSchema = z.object({
   accountId: uuidSchema,
   type: z.enum(TRANSACTION_TYPES),
-  amount: amountSchema,
+  amount: adminAmountSchema,
   description: trimmed(2, 120, "Description"),
   merchant: optionalText(80),
   category: z.enum(CATEGORIES),
-  transactionDate: dateString.refine(
-    (v) => new Date(v).getTime() <= Date.now() + 60_000,
-    "Transaction date cannot be in the future",
-  ),
+  transactionDate: dateString,
   status: z.enum(["COMPLETED", "PENDING"]),
   reference: z
     .string()
@@ -279,9 +352,14 @@ export const updateTransactionSchema = z.object({
   merchant: optionalText(80),
   category: z.enum(CATEGORIES).optional(),
   notes: optionalText(300),
-  status: z.enum(["COMPLETED", "FAILED"]).optional(),
+  amount: adminAmountSchema.optional(),
+  type: z.enum(TRANSACTION_TYPES).optional(),
+  transactionDate: dateString.optional(),
+  status: z.enum(["COMPLETED", "FAILED", "PENDING"]).optional(),
   reason: reasonSchema,
 });
+
+export const deleteTransactionSchema = z.object({ reason: reasonSchema });
 
 export const reverseTransactionSchema = z.object({ reason: reasonSchema });
 

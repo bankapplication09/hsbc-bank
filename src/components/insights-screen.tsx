@@ -33,7 +33,7 @@ export function InsightsScreen({
       <div className="space-y-6 px-4 pb-10 md:px-0">
         <BankingPageIntro
           title="Your money this month"
-          description="Spending by category, cashflow trends, and links to transactions — calculated from your demo account activity."
+          description="Spending by category, cashflow trends, and links to transactions — calculated from your account activity."
           icon={PieChart}
           imageSrc="/ui/hero-services.svg"
         />

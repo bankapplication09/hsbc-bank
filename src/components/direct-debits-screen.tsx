@@ -101,7 +101,7 @@ export function DirectDebitsScreen({
           </ul>
         )}
         <section className="panel p-4">
-          <SectionHeader title="Bill categories" description="Set up a mandate for each biller (demo)." />
+          <SectionHeader title="Bill categories" description="Set up a mandate for each biller." />
           <div className="grid gap-2 sm:grid-cols-3">
             {billPayCategories.map((cat) => (
               <span key={cat.id} className="rounded-md border border-line bg-mist/50 px-3 py-2 text-xs font-medium text-charcoal">

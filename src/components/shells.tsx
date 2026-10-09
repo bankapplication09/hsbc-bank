@@ -24,6 +24,7 @@ import { clsx } from "clsx";
 import { api } from "@/lib/client";
 import { formatTodayLong } from "@/lib/format";
 import { HsbcLogo } from "./logo";
+import { ForceLoginOnReload } from "./force-login-on-reload";
 import { SecureSessionBadge } from "./ui";
 
 const userLinks = [
@@ -70,6 +71,7 @@ export function UserShell({
 
   return (
     <div className="min-h-dvh bg-mist text-ink">
+      <ForceLoginOnReload />
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-line bg-surface md:flex">
         <div className="border-b-4 border-brand px-5 py-5">
           <Wordmark />
@@ -196,6 +198,7 @@ export function AdminShell({ name, children }: { name: string; children: React.R
   }
   return (
     <div className="min-h-dvh bg-mist text-ink md:flex">
+      <ForceLoginOnReload />
       <aside className="flex flex-col border-b border-line bg-charcoal text-white md:fixed md:inset-y-0 md:w-64 md:border-b-0">
         <div className="border-b border-white/10 px-5 py-5 md:border-b-0">
           <Wordmark onDark />

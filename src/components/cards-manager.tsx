@@ -116,7 +116,7 @@ export function CardsManager({
                     <p className="text-xs tracking-[0.16em] text-white/60">DEBIT · VISA</p>
                     <p className="mt-6 font-mono text-xl tracking-[0.25em] sm:text-2xl">•••• •••• •••• {card.cardLast4}</p>
                     <p className="mt-4 text-sm text-white/80">{card.name}</p>
-                    <p className="text-xs text-white/50">Valid thru 09/28 (demo)</p>
+                    <p className="text-xs text-white/50">Valid thru 09/28</p>
                     <p className="mt-2 text-xs text-white/50">{card.accountNumberMasked}</p>
                   </div>
                   <HsbcLogo onDark size={64} />
@@ -162,7 +162,7 @@ export function CardsManager({
                   }
                 }}
               >
-                <SectionHeader title="Card controls" description="Changes apply to this debit card in the demo." />
+                <SectionHeader title="Card controls" description="Changes apply to this debit card." />
                 <label className="flex items-center justify-between">
                   Contactless
                   <input type="checkbox" name="contactless" defaultChecked={card.contactlessEnabled} />

@@ -98,13 +98,13 @@ function UpiPanel() {
   const [note, setNote] = useState("");
   const [tab, setTab] = useState<"pay" | "qr">("pay");
   const [history, setHistory] = useState(demoStore.listUpi());
-  const saved = ["demo.user@bank", "friend@pay"];
+  const saved = ["your.name@bank", "friend@pay"];
 
   return (
     <div className="space-y-4">
       <DemoNotice>UK bank accounts do not use UPI — this screen simulates the menu for training.</DemoNotice>
       <MetricGrid>
-        <MetricCard label="Daily limit (demo)" value="£5,000" hint="Resets at midnight UK time" />
+        <MetricCard label="Daily limit" value="£5,000" hint="Resets at midnight UK time" />
         <MetricCard label="Saved recipients" value={String(saved.length)} />
         <MetricCard label="Recent attempts" value={String(history.length)} />
       </MetricGrid>
@@ -116,13 +116,13 @@ function UpiPanel() {
             onClick={() => setTab(id)}
             className={`focus-ring rounded-md px-4 py-2 text-sm font-medium ${tab === id ? "bg-brand text-white" : "border border-line bg-white"}`}
           >
-            {id === "pay" ? "Pay" : "Scan QR (demo)"}
+            {id === "pay" ? "Pay" : "Scan QR"}
           </button>
         ))}
       </div>
       {tab === "pay" ? (
         <Card className="space-y-3">
-          <SectionHeader title="Send a demo UPI payment" description="Stored on this device only." />
+          <SectionHeader title="Send a UPI payment" description="Stored on this device only." />
           <TextField label="UPI ID" placeholder="name@bank" value={vpa} onChange={(e) => setVpa(e.target.value)} list="upi-saved" required />
           <datalist id="upi-saved">
             {saved.map((id) => (
@@ -138,13 +138,13 @@ function UpiPanel() {
               if (!vpa.trim() || !amount.trim()) return;
               demoStore.addUpi({ vpa: vpa.trim(), amount, note });
               setHistory(demoStore.listUpi());
-              toast("Demo UPI payment saved");
+              toast("UPI payment saved");
               setVpa("");
               setAmount("");
               setNote("");
             }}
           >
-            Save demo payment
+            Save payment
           </Button>
         </Card>
       ) : (
@@ -156,7 +156,7 @@ function UpiPanel() {
         </Card>
       )}
       {history.length === 0 ? (
-        <EmptyState title="No demo UPI payments" body="Saved attempts appear here with status Pending (demo)." />
+        <EmptyState title="No UPI payments" body="Saved attempts appear here with status Pending." />
       ) : (
         <Card padding="none">
           <div className="border-b border-line px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted">Recent</div>
@@ -164,7 +164,7 @@ function UpiPanel() {
             <div key={row.id} className="border-b border-line px-4 py-3 last:border-b-0 text-sm">
               <p className="font-medium">{row.vpa}</p>
               <p className="text-muted">
-                £{row.amount} · Pending (demo) · {formatDateTime(row.createdAt)}
+                £{row.amount} · Pending · {formatDateTime(row.createdAt)}
               </p>
             </div>
           ))}
@@ -189,7 +189,7 @@ function RequestMoneyPanel() {
       <DemoNotice />
       <MetricGrid>
         <MetricCard label="Pending" value={String(rows.filter((r) => r.status === "Pending").length)} tone="brand" />
-        <MetricCard label="Paid (demo)" value={String(rows.filter((r) => r.status === "Paid").length)} />
+        <MetricCard label="Paid" value={String(rows.filter((r) => r.status === "Paid").length)} />
       </MetricGrid>
       <Card className="space-y-3">
         <SectionHeader title="Create a request" description="Share your account details separately when the payer is ready." />
@@ -203,10 +203,10 @@ function RequestMoneyPanel() {
             if (!name.trim() || !amount.trim()) return;
             demoStore.addMoneyRequest({ name: name.trim(), amount, reference });
             setRows(demoStore.listMoneyRequests());
-            toast("Demo request created");
+            toast("Request created");
           }}
         >
-          Create demo request
+          Create request
         </Button>
       </Card>
       <div className="flex flex-wrap gap-2">
@@ -257,7 +257,7 @@ function StandingOrderPanel() {
 
   return (
     <div className="space-y-4">
-      <DemoNotice>Creating standing orders to external payees is not enabled on savings accounts in this demo.</DemoNotice>
+      <DemoNotice>Creating standing orders to external payees may not be available on savings accounts.</DemoNotice>
       {error ? <ErrorState message={error} /> : null}
       <MetricGrid>
         <MetricCard label="Active" value={String(rows.length)} />
@@ -296,7 +296,7 @@ function BillPayPanel() {
   const filtered = billPayCategories.filter((c) => c.label.toLowerCase().includes(query.toLowerCase()));
   return (
     <div className="space-y-4">
-      <DemoNotice>Bill pay uses direct debits and saved payees in this demo environment.</DemoNotice>
+      <DemoNotice>Bill pay is linked to your direct debits and saved payees.</DemoNotice>
       <TextField label="Search categories" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Electricity, mobile…" />
       <div className="grid gap-3 sm:grid-cols-2">
         {filtered.map((cat) => (
@@ -336,7 +336,7 @@ function InternationalPanel() {
       <DemoNotice>Indicative rates for layout only — not a live quote.</DemoNotice>
       <MetricGrid>
         <MetricCard label="Cut-off" value="15:00 UK" hint="Same-day where supported" />
-        <MetricCard label="Fee (demo)" value={selected.fee} />
+        <MetricCard label="Fee" value={selected.fee} />
       </MetricGrid>
       <Card className="space-y-3">
         <SectionHeader title="Estimate conversion" description="Final rate is confirmed on the review screen in live banking." />
@@ -436,11 +436,11 @@ function ChequeBookPanel() {
     <div className="space-y-4">
       <DemoNotice />
       <MetricGrid>
-        <MetricCard label="Delivery" value="5 days" hint="Working days (demo)" />
+        <MetricCard label="Delivery" value="5 days" hint="Working days" />
         <MetricCard label="Fee" value="£0" />
       </MetricGrid>
       <Card className="space-y-3">
-        <SectionHeader title="Order cheque book" description="Submitted to demo storage on this device." />
+        <SectionHeader title="Order cheque book" description="Submitted for processing from this device." />
         <SelectField label="Cheque leaves" value={leaves} onChange={(e) => setLeaves(e.target.value)}>
           <option value="25">25 leaves</option>
           <option value="50">50 leaves</option>
@@ -453,10 +453,10 @@ function ChequeBookPanel() {
             if (!address.trim()) return;
             demoStore.addCheque({ leaves, address: address.trim() });
             setOrders(demoStore.listCheques());
-            toast("Demo cheque order submitted");
+            toast("Cheque order submitted");
           }}
         >
-          Submit demo order
+          Submit order
         </Button>
       </Card>
       {orders.length === 0 ? (
@@ -563,13 +563,13 @@ function LoanProductPanel({ item }: { item: ServiceItem }) {
       <FactsCard item={item} />
       <MetricGrid>
         <MetricCard label="Outstanding" value="£0.00" />
-        <MetricCard label="APR (demo)" value="6.9%" hint="Illustration only" />
+        <MetricCard label="APR" value="6.9%" hint="Illustration only" />
         <MetricCard label="Next payment" value="—" />
       </MetricGrid>
       {showCalc ? <LoanCalculatorPanel /> : null}
       {item.slug === "overdraft" ? (
         <Card className="space-y-3">
-          <SectionHeader title="Overdraft limit (demo)" description="Utilisation bar updates when a limit is arranged." />
+          <SectionHeader title="Overdraft limit" description="Utilisation bar updates when a limit is arranged." />
           <div className="h-2 rounded-full bg-mist">
             <div className="h-full w-0 rounded-full bg-brand" />
           </div>
@@ -596,7 +596,7 @@ function LoanProductPanel({ item }: { item: ServiceItem }) {
       )}
       <Link href="/help">
         <Button type="button" variant="secondary" className="w-full">
-          Help and eligibility (demo)
+          Help and eligibility
         </Button>
       </Link>
       <RelatedServices slug={item.slug} />
@@ -614,7 +614,7 @@ function DepositPanel({ item }: { item: ServiceItem }) {
 
   return (
     <div className="space-y-4">
-      <DemoNotice>Rates shown are illustrative for this demo, not current HSBC UK product rates.</DemoNotice>
+      <DemoNotice>Rates shown are illustrative and may differ from current HSBC UK product rates.</DemoNotice>
       <FactsCard item={item} />
       {item.slug === "deposit-rates" || item.slug === "fixed-deposit" ? (
         <>
@@ -646,7 +646,7 @@ function DepositPanel({ item }: { item: ServiceItem }) {
       ) : null}
       {item.slug === "cash-isa" ? (
         <Card className="space-y-2 text-sm">
-          <p className="font-medium">ISA allowance (demo tax year)</p>
+          <p className="font-medium">ISA allowance (current tax year)</p>
           <p className="text-muted">Annual subscription limit shown in facts — verify against HMRC rules for real applications.</p>
           <div className="h-2 rounded-full bg-mist">
             <div className="h-full w-[15%] rounded-full bg-brand" title="Illustrative contributions" />
@@ -680,14 +680,14 @@ function CardServicePanel({ item }: { item: ServiceItem }) {
             <Card key={cat} padding="sm" className="space-y-2">
               <div className="h-20 rounded-md bg-gradient-to-br from-brand-soft to-mist" aria-hidden />
               <p className="font-medium">{cat} offers</p>
-              <p className="text-xs text-muted">No active offers in this demo build.</p>
+              <p className="text-xs text-muted">No active offers at the moment.</p>
             </Card>
           ))}
         </div>
       ) : null}
       {item.slug === "card-limits" ? (
         <Card className="space-y-3">
-          <SectionHeader title="Daily limit utilisation (demo)" />
+          <SectionHeader title="Daily limit utilisation" />
           <div className="h-2 rounded-full bg-mist">
             <div className="h-full w-[32%] rounded-full bg-brand" />
           </div>
@@ -711,7 +711,7 @@ function CardServicePanel({ item }: { item: ServiceItem }) {
 function DocumentsPanel() {
   const [query, setQuery] = useState("");
   const docs = [
-    { name: "Terms summary (demo).pdf", type: "PDF", size: "124 KB" },
+    { name: "Terms summary.pdf", type: "PDF", size: "124 KB" },
     { name: "Fee schedule (illustrative).pdf", type: "PDF", size: "98 KB" },
   ];
   const filtered = docs.filter((doc) => doc.name.toLowerCase().includes(query.toLowerCase()));
@@ -729,7 +729,7 @@ function DocumentsPanel() {
                 {doc.type} · {doc.size}
               </p>
               <button type="button" className="mt-1 text-sm font-semibold text-brand" disabled>
-                Download (demo)
+                Download
               </button>
             </div>
           </Card>
@@ -754,10 +754,10 @@ function BranchesPanel() {
           <p className="text-xs text-muted">{branch.hours}</p>
           <div className="flex gap-2 pt-2">
             <Button type="button" variant="secondary" disabled>
-              Directions (demo)
+              Directions
             </Button>
             <Button type="button" variant="ghost" disabled>
-              Call (demo)
+              Call
             </Button>
           </div>
         </Card>

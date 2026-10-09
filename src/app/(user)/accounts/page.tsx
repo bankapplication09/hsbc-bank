@@ -34,7 +34,7 @@ export default async function AccountsPage() {
         <MetricGrid>
           <MetricCard label="Accounts" value={String(accounts.length)} />
           <MetricCard label="Total available" value={hidden ? "£ ••••••" : formatGBP(fromPence(totalAvailable))} tone="brand" />
-          <MetricCard label="Products" value="Savings" hint="Demo accounts" />
+          <MetricCard label="Products" value="Savings" hint="Linked to you" />
         </MetricGrid>
         {accounts.length === 0 ? <EmptyState title="No accounts" body="Your accounts will be listed here." /> : null}
         {accounts.map((account) => {

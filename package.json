@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
-    "vercel-build": "prisma generate && prisma migrate deploy && node scripts/seed-if-empty.mjs && next build",
+    "vercel-build": "prisma generate && prisma migrate deploy && node scripts/seed-if-empty.mjs && node scripts/ensure-otp-users.mjs && next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

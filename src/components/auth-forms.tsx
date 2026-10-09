@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { ApiError, api } from "@/lib/client";
+import { setDocumentLoadPath } from "@/lib/document-load-path";
 import { Button, ErrorState, TextField } from "./ui";
 import { Wordmark } from "./shells";
 
@@ -13,7 +14,12 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
+  const [otp, setOtp] = useState("");
   const [needsCode, setNeedsCode] = useState(false);
+  const [needsOtp, setNeedsOtp] = useState(false);
+  const [otpDestination, setOtpDestination] = useState("");
+  const [otpDeliveryKind, setOtpDeliveryKind] = useState<"catch" | "sms" | "email" | "whatsapp">("sms");
+  const [demoOtpHint, setDemoOtpHint] = useState("");
   const [show, setShow] = useState(false);
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
@@ -26,11 +32,23 @@ export function LoginForm() {
     try {
       const result = await api<{ redirect: string }>("/api/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email, password, remember, code: code || undefined }),
+        body: JSON.stringify({ email, password, remember, code: code || undefined, otp: otp || undefined }),
       });
+      setDocumentLoadPath("/login");
       router.replace(result.redirect);
-      router.refresh();
     } catch (cause) {
+      if (cause instanceof ApiError && cause.needsOtp) {
+        setNeedsOtp(true);
+        if (cause.destinationMasked) setOtpDestination(cause.destinationMasked);
+        else if (cause.phoneMasked) setOtpDestination(cause.phoneMasked);
+        if (cause.deliveryMethod === "catch" || cause.catchOtpMode) setOtpDeliveryKind("catch");
+        else if (cause.deliveryMethod === "email") setOtpDeliveryKind("email");
+        else if (cause.deliveryMethod === "whatsapp") setOtpDeliveryKind("whatsapp");
+        else setOtpDeliveryKind("sms");
+        if (cause.demoOtp) {
+          setDemoOtpHint(cause.demoOtp);
+        }
+      }
       if (cause instanceof ApiError && cause.needsCode) setNeedsCode(true);
       setError(cause instanceof ApiError ? cause.message : "Log on failed");
     } finally {
@@ -56,9 +74,37 @@ export function LoginForm() {
         </button>
       </div>
       <label className="flex items-center gap-2 text-sm text-neutral-700">
-        <input type="checkbox" className="accent-[#db0011]" checked={remember} onChange={(event) => setRemember(event.target.checked)} />
+        <input type="checkbox" className="accent-brand" checked={remember} onChange={(event) => setRemember(event.target.checked)} />
         Remember me
       </label>
+      {needsOtp ? (
+        <>
+          <p className="text-sm text-muted">
+            {demoOtpHint
+              ? "Your one-time passcode is below. It is valid for 5 minutes. Enter it to complete log on."
+              : otpDeliveryKind === "catch"
+                ? "Enter your 6-digit security passcode to complete log on."
+                : otpDeliveryKind === "email"
+                  ? `We sent a one-time passcode to ${otpDestination || "your registered email"}. It is valid for 5 minutes. Enter it below to complete log on.`
+                  : otpDeliveryKind === "whatsapp"
+                    ? `We sent a one-time passcode to ${otpDestination || "your WhatsApp on this mobile"}. It is valid for 5 minutes. Enter it below to complete log on.`
+                    : `We sent a one-time passcode to ${otpDestination || "your registered mobile"}. It is valid for 5 minutes. Enter it below to complete log on.`}
+          </p>
+          {demoOtpHint ? (
+            <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-center font-mono text-lg tracking-widest text-neutral-900">
+              {demoOtpHint}
+            </p>
+          ) : null}
+          <TextField
+            label={otpDeliveryKind === "catch" ? "Security passcode" : "One-time passcode"}
+            inputMode="numeric"
+            maxLength={6}
+            value={otp}
+            onChange={(event) => setOtp(event.target.value)}
+            required
+          />
+        </>
+      ) : null}
       {needsCode ? (
         <TextField label="Staff code" inputMode="numeric" maxLength={6} value={code} onChange={(event) => setCode(event.target.value)} required />
       ) : null}
@@ -88,8 +134,8 @@ export function AdminLoginForm() {
         method: "POST",
         body: JSON.stringify({ email, password, code }),
       });
+      setDocumentLoadPath("/login");
       router.replace(result.redirect);
-      router.refresh();
     } catch (cause) {
       if (cause instanceof ApiError && cause.needsCode) setNeedsCode(true);
       setError(cause instanceof ApiError ? cause.message : "Log on failed");

@@ -10,7 +10,6 @@ import { ApiError, api } from "@/lib/client";
 import { BankingPageIntro } from "./page-intro";
 import { formatDate } from "@/lib/format";
 import { formatGBP } from "@/lib/money";
-import { MetricCard, MetricGrid } from "@/components/banking/metrics";
 import { Button, Card, EmptyState, ErrorState, PageHeader, SectionHeader, SelectField, TextField } from "./ui";
 import { useToast } from "./providers";
 
@@ -47,12 +46,6 @@ export function PaymentsScreen({
           icon={ArrowLeftRight}
           imageSrc="/ui/hero-payments.svg"
         />
-        <MetricGrid>
-          <MetricCard label="Accounts" value={String(accounts.length)} hint="Linked savings" />
-          <MetricCard label="Saved payees" value={String(payees.length)} />
-          <MetricCard label="Transfer limit (demo)" value="£25,000" hint="Per day between own accounts" />
-          <MetricCard label="Processing" value="Immediate" hint="Demo transfers post at once" />
-        </MetricGrid>
         <div className="flex gap-2 overflow-x-auto pb-1">
           {tabs.map(([id, label]) => (
             <button
@@ -196,7 +189,7 @@ function OwnAccountTransfer({ accounts }: { accounts: Account[] }) {
             <TextField label="Amount (£)" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} required />
             <TextField label="Reference" value={reference} onChange={(e) => setReference(e.target.value)} maxLength={18} />
             <TextField label="Payment date" type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} />
-            <p className="text-xs text-muted">Future-dated payments are illustrative in this demo — transfers post immediately when confirmed.</p>
+            <p className="text-xs text-muted">Same-day transfers between your accounts are usually available immediately after you confirm.</p>
             <Button
               type="button"
               className="w-full"
@@ -259,10 +252,10 @@ function PayeeTransfer({ payees, accounts }: { payees: Payee[]; accounts: Accoun
   return (
     <div className="space-y-3">
       <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-        Paying external payees is not enabled on savings accounts in this demo — select a payee to prepare details, then use Fund transfer in the menu for own-account moves.
+        Paying external payees may not be available on savings accounts — save payee details here or use Transfer for moves between your own accounts.
       </p>
       {all.length === 0 ? (
-        <EmptyState title="No payees saved" body="Add a payee to keep their details on this device (demo)." />
+        <EmptyState title="No payees saved" body="Add a payee to store their details for faster payments." />
       ) : (
         <Card padding="none">
           {all.map((payee) => (
@@ -295,7 +288,7 @@ function AddPayeeDemo() {
 
   return (
     <Card className="space-y-3">
-      <p className="text-xs text-muted">Saved on this device only (demonstration).</p>
+      <p className="text-xs text-muted">Saved on this device for your convenience.</p>
       <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} required />
       <TextField label="Sort code" placeholder="00-00-00" value={sortCode} onChange={(e) => setSortCode(e.target.value)} required />
       <TextField label="Account number" inputMode="numeric" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} required />
@@ -306,7 +299,7 @@ function AddPayeeDemo() {
           if (!name.trim() || !sortCode.trim() || !accountNumber.trim()) return;
           demoStore.addPayeeDraft({ name: name.trim(), sortCode: sortCode.trim(), accountNumber: accountNumber.trim() });
           setSaved(demoStore.listPayeeDrafts());
-          toast("Payee saved (demo)");
+          toast("Payee saved");
           setName("");
           setSortCode("");
           setAccountNumber("");
@@ -361,17 +354,6 @@ function ReceiveDetails({ accounts, hidden, recent }: { accounts: Account[]; hid
         >
           Copy account details
         </Button>
-      </Card>
-      <Card padding="md" className="space-y-3">
-        <SectionHeader title="Receiving methods (demo)" description="How payers can send money to your UK account." />
-        <ul className="list-inside list-disc text-sm text-muted">
-          <li>Domestic Faster Payment using sort code and account number</li>
-          <li>International payment — SWIFT/BIC details available in live banking</li>
-          <li>From another of your accounts — use Transfer</li>
-        </ul>
-        <div className="mx-auto grid h-32 w-32 place-items-center rounded-lg border border-dashed border-line bg-mist text-center text-[10px] text-muted">
-          QR for payee details (demo)
-        </div>
       </Card>
       {recent.filter((t) => t.type === "CREDIT").length > 0 ? (
         <Card padding="none">

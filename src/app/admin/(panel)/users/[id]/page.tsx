@@ -13,7 +13,12 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
   const user = await prisma.user.findUnique({ where: { id } });
   if (!user || user.role !== "USER") notFound();
   const accounts = await prisma.account.findMany({ where: { userId: user.id }, orderBy: { createdAt: "asc" } });
-  const txns = await queryTransactions({ userId: user.id, page: 1, pageSize: 15 });
+  const txns = await queryTransactions({ userId: user.id, page: 1, pageSize: 100 });
+  const notifications = await prisma.notification.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+  });
   const actions = await prisma.adminAction.findMany({
     where: { targetUserId: user.id },
     orderBy: { createdAt: "desc" },
@@ -25,7 +30,25 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
   return (
     <div className="space-y-4">
       <AdminCustomer
-        user={view}
+        user={{
+          ...view,
+          dateOfBirth: user.dateOfBirth?.toISOString().slice(0, 10) ?? "",
+          addressLine: user.addressLine,
+          city: user.city,
+          postcode: user.postcode,
+          occupation: user.occupation,
+          nationality: user.nationality,
+          maritalStatus: user.maritalStatus,
+          employerName: user.employerName,
+          jobTitle: user.jobTitle,
+          workEmail: user.workEmail,
+          workPhone: user.workPhone,
+          workAddressLine: user.workAddressLine,
+          workCity: user.workCity,
+          workPostcode: user.workPostcode,
+          employmentStatus: user.employmentStatus,
+          onlinePaymentLimit: user.onlinePaymentLimit.toString(),
+        }}
         accounts={accounts.map((account) => {
           const item = serializeAccount(account, true);
           return {
@@ -34,11 +57,32 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
             currentBalance: item.currentBalance,
             status: item.status,
             accountNumber: account.accountNumber,
+            dailyLimit: item.dailyLimit,
+            cardLast4: account.cardLast4,
           };
         })}
+        notifications={notifications.map((item) => ({
+          id: item.id,
+          title: item.title,
+          body: item.body,
+          type: item.type,
+          read: item.read,
+          createdAt: item.createdAt.toISOString(),
+        }))}
         transactions={txns.items.map((txn) => {
           const item = serializeTxn(txn);
-          return { id: item.id, description: item.description, amount: item.amount, type: item.type, status: item.status, reference: item.reference };
+          return {
+            id: item.id,
+            accountId: item.accountId,
+            description: item.description,
+            amount: item.amount,
+            type: item.type,
+            status: item.status,
+            reference: item.reference,
+            category: item.category,
+            merchant: item.merchant,
+            transactionDate: item.transactionDate,
+          };
         })}
       />
       <section className="rounded-2xl bg-white ring-1 ring-line">

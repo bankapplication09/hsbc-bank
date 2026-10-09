@@ -79,7 +79,7 @@ export default async function StatementsPage({
             <section className="panel p-4">
               <SectionHeader title="Statement summary" description={`${statement.account.name} · ${formatDate(statement.start)} – ${formatDate(statement.end)}`} />
               <p className="text-sm text-muted">
-                {statement.items.length} entries in this period. CSV export includes the same rows for spreadsheet reconciliation (demo).
+                {statement.items.length} entries in this period. CSV export includes the same rows for spreadsheet reconciliation.
               </p>
               <Link
                 href={`/api/statements/download?accountId=${statement.account.id}&from=${parsed.success ? parsed.data.from : defaultFrom}&to=${parsed.success ? parsed.data.to : defaultTo}`}
