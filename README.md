@@ -32,16 +32,44 @@ npm run dev
 
 Open http://localhost:3000. The layout is built for a phone first (375–430px). On a wider screen the same screens sit beside a side menu.
 
-## Vercel
+## Vercel (team [hsbc7](https://vercel.com/hsbc7))
 
-Set these environment variables on the project:
+### 1. Database (Vercel Postgres, not Supabase)
 
-- `DATABASE_URL` — pooled Postgres URL (Neon or Vercel Postgres)
-- `DIRECT_URL` — direct Postgres URL, used by Prisma migrations
-- `APP_URL` — the public site URL
-- `DEMO_EXPOSE_RESET_LINK` — keep this `false` on a public site
+In the **hsbc7** team: **Storage → Create database → Postgres**, then **Connect** it to your `hsbc-bank` project. Vercel adds `POSTGRES_*` variables automatically.
 
-The build command is `npm run vercel-build`, which generates the client, applies migrations, and builds Next.js.
+Map them for Prisma (Production + Preview + Development):
+
+| You set      | Copy from (Vercel Postgres)   |
+|-------------|--------------------------------|
+| `DATABASE_URL` | `POSTGRES_PRISMA_URL`       |
+| `DIRECT_URL`   | `POSTGRES_URL_NON_POOLING`  |
+
+Also set:
+
+- `APP_URL` — your public URL, e.g. `https://your-app.vercel.app`
+- `DEMO_EXPOSE_RESET_LINK` — `false` on a public site
+
+After the first deploy, seed demo data once (from your machine, with env pointing at the new DB):
+
+```bash
+npm run db:seed
+```
+
+Demo log on: `user@hsbcuk.co.uk` / `User@12345`, `admin@hsbcuk.co.uk` / `Admin@12345`.
+
+### 2. Deploy from this repo
+
+The CLI must be logged into the **hsbc7** account (`npx vercel login`). Then:
+
+```bash
+cd hsbc-bank
+Remove-Item .vercel -Recurse -Force -ErrorAction SilentlyContinue
+npx vercel link --yes --scope hsbc7 --project hsbc-bank
+npx vercel deploy --prod --yes
+```
+
+Build command: `npm run vercel-build` (generate client, run migrations, build Next.js).
 
 ## Checks
 
